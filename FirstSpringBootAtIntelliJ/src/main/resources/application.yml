@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: FirstSpringBootAtIntelliJ
+
+  # Mariadb server connect
+  datasource:
+    driver-class-name: org.mariadb.jdbc.Driver
+    url: jdbc:mariadb://127.0.0.1:3308/sql_practice
+    username: root
+
+  # jpa
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MariaDBDialect
+  
+  # 시큐리티에 대한 로깅 수준 설정
+logging:
+  level:
+    org:
+      springframework:
+        security: DEBUG
