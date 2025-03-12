@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: TestStudy
+
+  # Mariadb server connect
+  datasource:
+    driver-class-name: org.mariadb.jdbc.Driver
+    url: jdbc:mariadb://127.0.0.1:3308/sql_practice
+    username: root
+
+  # jpa
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MariaDBDialect
