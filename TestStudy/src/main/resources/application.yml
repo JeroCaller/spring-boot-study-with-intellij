@@ -5,7 +5,7 @@ spring:
   # Mariadb server connect
   datasource:
     driver-class-name: org.mariadb.jdbc.Driver
-    url: jdbc:mariadb://127.0.0.1:3308/sql_practice
+    url: jdbc:mariadb://127.0.0.1:3308/test_sql_practice
     username: root
 
   # jpa

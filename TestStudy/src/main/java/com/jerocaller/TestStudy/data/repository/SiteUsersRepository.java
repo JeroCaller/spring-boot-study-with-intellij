@@ -17,19 +17,25 @@ public interface SiteUsersRepository extends JpaRepository<SiteUsers, Integer> {
      * 
      * @return
      */
-    @Query(value = """
-        SELECT su
-            FROM SiteUsers su
-            WHERE su.recommBy IS NOT null
-            GROUP BY su.recommBy
-            HAVING COUNT(su) = (
-                SELECT MAX(sub.recommendationCount)
-                FROM (
-                    SELECT COUNT(su2) AS recommendationCount
-                    FROM SiteUsers su2
-                    WHERE su2.recommBy IS NOT null
-                    GROUP BY su2.recommBy
-                ) sub
+    @Query("""
+        SELECT su1
+        FROM SiteUsers su1
+        JOIN SiteUsers su2
+        ON su2.recommBy = su1.username
+        WHERE
+            su2 = (SELECT su3
+                FROM SiteUsers su3
+                WHERE su3.recommBy IS NOT NULL
+                GROUP BY su3.recommBy
+                HAVING COUNT(su3) = (
+                    SELECT MAX(sub.recommendationCount)
+                    FROM (
+                        SELECT COUNT(su4) AS recommendationCount
+                        FROM SiteUsers su4
+                        WHERE su4.recommBy IS NOT NULL
+                        GROUP BY su4.recommBy
+                    ) sub
+                )
             )
     """)
     Optional<SiteUsers> findByRecommByMax();
