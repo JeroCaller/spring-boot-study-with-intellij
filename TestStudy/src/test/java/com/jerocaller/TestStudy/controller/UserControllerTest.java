@@ -94,9 +94,14 @@ class UserControllerTest {
         // Given
         // 테스트용 URL 및 사용자 객체를 생성한 후, 해당 사용자 객체를 DB에 저장.
         final String url = "/api/users";
-
-        ClassType classType = classTypeRepository.findById(1)
-            .orElseThrow(() -> new EntityNotFoundException("해당 타입 미존재"));
+        
+        ClassType classType = classTypeRepository.saveAndFlush(
+            ClassType.builder()
+                .classNumber(1)
+                .className("VVIP")
+                .build()
+        );
+        classTypesForTest.add(classType);
 
         SiteUsers newUser = SiteUsers.builder()
             .memberId(100)
