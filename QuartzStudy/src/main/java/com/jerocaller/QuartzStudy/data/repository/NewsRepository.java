@@ -12,4 +12,7 @@ public interface NewsRepository extends JpaRepository<News, Integer> {
 
     @Query("SELECT n FROM News n LEFT JOIN Words w ON n.id = w.news.id WHERE w.news IS NULL")
     List<News> findAllNotInWords();
+
+    @Query("SELECT n FROM News n LEFT JOIN Words w ON n.id = w.news.id WHERE w.news IS NOT NULL")
+    List<News> findAllInWords();
 }
