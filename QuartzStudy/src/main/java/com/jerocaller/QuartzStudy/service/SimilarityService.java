@@ -92,6 +92,8 @@ public class SimilarityService {
                 }
             }
         }
+
+        memo.clear();
     }
 
     private Set<String> toStringWords(List<Words> words) {

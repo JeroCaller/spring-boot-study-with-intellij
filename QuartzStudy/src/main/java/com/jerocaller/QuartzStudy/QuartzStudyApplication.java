@@ -4,7 +4,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
-// TODO - 구글 트렌드 인기 검색어 일정 주기로 가져오는 스케줄링 작업.
+// TODO - 총 3개의 job들을 스케줄링하기.
 @SpringBootApplication
 @EnableFeignClients
 public class QuartzStudyApplication {
