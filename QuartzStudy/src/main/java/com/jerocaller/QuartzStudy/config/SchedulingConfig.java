@@ -3,6 +3,7 @@ package com.jerocaller.QuartzStudy.config;
 import com.jerocaller.QuartzStudy.schedule.ScheduleNames;
 import com.jerocaller.QuartzStudy.schedule.job.GoogleTrendKeywordJob;
 import com.jerocaller.QuartzStudy.schedule.job.listener.GlobalJobListener;
+import com.jerocaller.QuartzStudy.schedule.job.listener.GlobalTriggerListener;
 import lombok.RequiredArgsConstructor;
 import org.quartz.JobBuilder;
 import org.quartz.JobDetail;
@@ -19,6 +20,7 @@ import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 public class SchedulingConfig implements SchedulerFactoryBeanCustomizer {
 
     private final GlobalJobListener globalJobListener;
+    private final GlobalTriggerListener globalTriggerListener;
 
     /**
      * 자동 구성될 스케줄러 빈을 초기화하기전 커스텀하기.
@@ -30,6 +32,7 @@ public class SchedulingConfig implements SchedulerFactoryBeanCustomizer {
     @Override
     public void customize(SchedulerFactoryBean schedulerFactoryBean) {
         schedulerFactoryBean.setGlobalJobListeners(globalJobListener);
+        schedulerFactoryBean.setGlobalTriggerListeners(globalTriggerListener);
     }
 
     /**
@@ -55,7 +58,7 @@ public class SchedulingConfig implements SchedulerFactoryBeanCustomizer {
             .startNow()
             .withSchedule(
                 SimpleScheduleBuilder.simpleSchedule()
-                    .withIntervalInSeconds(30)
+                    .withIntervalInMinutes(1)
                     .withRepeatCount(3)
             )
             .build();
