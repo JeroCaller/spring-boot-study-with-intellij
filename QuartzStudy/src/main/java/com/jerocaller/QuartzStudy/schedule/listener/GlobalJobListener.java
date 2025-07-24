@@ -1,4 +1,4 @@
-package com.jerocaller.QuartzStudy.schedule.job.listener;
+package com.jerocaller.QuartzStudy.schedule.listener;
 
 import com.jerocaller.QuartzStudy.mapper.DateMapper;
 import com.jerocaller.QuartzStudy.schedule.ProcessedJobData;

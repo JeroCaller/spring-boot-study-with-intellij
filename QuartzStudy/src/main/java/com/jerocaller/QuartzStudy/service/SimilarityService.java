@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 @Service
@@ -36,12 +37,15 @@ public class SimilarityService {
         Set<String> union = new HashSet<>(source);
         union.addAll(target);
 
+        /*
         log.info("==========");
         log.info("source: {}", source);
         log.info("target: {}", target);
         log.info("Intersection : {}", intersection);
         log.info("Union: {}", union);
         log.info("==========");
+
+         */
 
         return (double) intersection.size() / union.size();
     }
@@ -57,6 +61,30 @@ public class SimilarityService {
         Set<String> sourceWordsString = toStringWords(sourceWords);
         Set<String> targetWordsString = toStringWords(targetWords);
         return getJaccardSimilarity(sourceWordsString, targetWordsString);
+    }
+
+    public Map<String, Object> getJaccardInfo(int newsSourceId, int newsTargetId) {
+        Map<String, Object> responseData = new HashMap<>();
+
+        List<Words> sourceWords = wordsRepository.findByNewsId(newsSourceId);
+        List<Words> targetWords = wordsRepository.findByNewsId(newsTargetId);
+
+        if (sourceWords == null || targetWords == null) {
+            responseData.put("info", "뉴스 데이터를 얻어올 수 없습니다.");
+            return responseData;
+        }
+
+        Set<String> sourceWordsString = toStringWords(sourceWords);
+        Set<String> targetWordsString = toStringWords(targetWords);
+        Set<String> intersection = new HashSet<>(sourceWordsString);
+        intersection.retainAll(targetWordsString);
+
+        responseData.put("sourceNewsWords", sourceWordsString);
+        responseData.put("targetNewsWords", targetWordsString);
+        responseData.put("intersection", intersection);
+        responseData.put("sourceNewsInfo", getNewsInfo(newsSourceId));
+        responseData.put("targetNewsInfo", getNewsInfo(newsTargetId));
+        return responseData;
     }
 
     @Transactional
@@ -112,5 +140,19 @@ public class SimilarityService {
             return words;
         }
         return memo.get(news.getId());
+    }
+
+    private Map<String, Object> getNewsInfo(int newsId) {
+        Map<String, Object> newsData = new HashMap<>();
+        Optional<News> newsOpt = newsRepository.findById(newsId);
+
+        if (newsOpt.isEmpty()) {
+            return null;
+        }
+
+        News news = newsOpt.get();
+        newsData.put("title", news.getTitle());
+        newsData.put("publisher", news.getNewsSource());
+        return newsData;
     }
 }

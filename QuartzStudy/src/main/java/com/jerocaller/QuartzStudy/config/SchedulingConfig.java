@@ -2,8 +2,10 @@ package com.jerocaller.QuartzStudy.config;
 
 import com.jerocaller.QuartzStudy.schedule.ScheduleNames;
 import com.jerocaller.QuartzStudy.schedule.job.GoogleTrendKeywordJob;
-import com.jerocaller.QuartzStudy.schedule.job.listener.GlobalJobListener;
-import com.jerocaller.QuartzStudy.schedule.job.listener.GlobalTriggerListener;
+import com.jerocaller.QuartzStudy.schedule.job.SimilarityJob;
+import com.jerocaller.QuartzStudy.schedule.job.WordAnalysisJob;
+import com.jerocaller.QuartzStudy.schedule.listener.GlobalJobListener;
+import com.jerocaller.QuartzStudy.schedule.listener.GlobalTriggerListener;
 import lombok.RequiredArgsConstructor;
 import org.quartz.JobBuilder;
 import org.quartz.JobDetail;
@@ -21,6 +23,8 @@ public class SchedulingConfig implements SchedulerFactoryBeanCustomizer {
 
     private final GlobalJobListener globalJobListener;
     private final GlobalTriggerListener globalTriggerListener;
+
+    private final int JOB_REPEAT = 3;
 
     /**
      * 자동 구성될 스케줄러 빈을 초기화하기전 커스텀하기.
@@ -42,7 +46,7 @@ public class SchedulingConfig implements SchedulerFactoryBeanCustomizer {
      * @return
      */
     @Bean
-    public JobDetail GoogleTrendJobDetail() {
+    public JobDetail googleTrendJobDetail() {
         return JobBuilder.newJob(GoogleTrendKeywordJob.class)
             .withIdentity("googleTrendKeywordJob")
             .usingJobData(ScheduleNames.COUNTER, 1)
@@ -51,15 +55,61 @@ public class SchedulingConfig implements SchedulerFactoryBeanCustomizer {
     }
 
     @Bean
-    public Trigger googleTrendJobTrigger(JobDetail googleTrendJobDetail) {
+    public Trigger googleTrendJobTrigger() {
         return TriggerBuilder.newTrigger()
             .withIdentity("googleTrendKeywordJobTrigger")
-            .forJob(googleTrendJobDetail)  // 트리거 할 jobDetail 등록
+            .forJob(googleTrendJobDetail())  // 트리거 할 jobDetail 등록
             .startNow()
             .withSchedule(
                 SimpleScheduleBuilder.simpleSchedule()
                     .withIntervalInMinutes(1)
-                    .withRepeatCount(3)
+                    .withRepeatCount(JOB_REPEAT)
+            )
+            .build();
+    }
+
+    @Bean
+    public JobDetail wordAnalysisJobDetail() {
+        return JobBuilder.newJob(WordAnalysisJob.class)
+            .withIdentity("wordAnalysisJob")
+            .usingJobData(ScheduleNames.COUNTER, 1)
+            .storeDurably(true)
+            .build();
+    }
+
+    @Bean
+    public Trigger wordAnalysisJobTrigger() {
+        return TriggerBuilder.newTrigger()
+            .withIdentity("wordAnalysisJobTrigger")
+            .forJob(wordAnalysisJobDetail())
+            .startNow()
+            .withSchedule(
+                SimpleScheduleBuilder.simpleSchedule()
+                    .withIntervalInSeconds(30)
+                    .withRepeatCount(JOB_REPEAT)
+            )
+            .build();
+    }
+
+    @Bean
+    public JobDetail similarityJobDetail() {
+        return JobBuilder.newJob(SimilarityJob.class)
+            .withIdentity("similarityJob")
+            .usingJobData(ScheduleNames.COUNTER, 1)
+            .storeDurably(true)
+            .build();
+    }
+
+    @Bean
+    public Trigger similarityJobTrigger() {
+        return TriggerBuilder.newTrigger()
+            .withIdentity("similarityJobTrigger")
+            .forJob(similarityJobDetail())
+            .startNow()
+            .withSchedule(
+                SimpleScheduleBuilder.simpleSchedule()
+                    .withIntervalInSeconds(45)
+                    .withRepeatCount(JOB_REPEAT)
             )
             .build();
     }

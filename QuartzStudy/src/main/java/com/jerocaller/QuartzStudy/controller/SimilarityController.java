@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/similarity")
 @RequiredArgsConstructor
@@ -23,12 +25,14 @@ public class SimilarityController {
         @PathVariable("sourceId") int sourceId,
         @PathVariable("targetId") int targetId
     ) {
+        Map<String, Object> responseData = similarityService.getJaccardInfo(sourceId, targetId);
         double result = similarityService.getJaccardBetweenTwoNews(sourceId, targetId);
+        responseData.put("similarity", result);
 
         return ApiResponse.builder()
             .httpStatus(HttpStatus.OK)
             .message("유사도 계산 성공")
-            .data(result)
+            .data(responseData)
             .build()
             .toResponseEntity();
     }
