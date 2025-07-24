@@ -9,8 +9,22 @@
     </appender>
 
     <!-- 파일 출력 설정 -->
-    <appender name="file" class="ch.qos.logback.core.FileAppender">
+    <appender name="error-file" class="ch.qos.logback.core.FileAppender">
         <file>./src/main/resources/log/error.log</file>
+        <append>false</append>
+        <immediateFlush>true</immediateFlush>
+        <!-- ERROR 레벨 이상만 기록하도록 필터 추가 -->
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
+        <encoder>
+            <pattern>%d{ISO8601} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 가장 최근에 실행했을 때의 로그 기록용 -->
+    <appender name="latest-info-file" class="ch.qos.logback.core.FileAppender">
+        <file>./src/main/resources/log/latest-info.log</file>
         <append>false</append>
         <immediateFlush>true</immediateFlush>
         <encoder>
@@ -18,11 +32,10 @@
         </encoder>
     </appender>
 
-    <root level="error">
+    <!-- 모든 로그를 처리하도록 root 로거를 INFO 레벨로 설정 -->
+    <root level="INFO">
         <appender-ref ref="console" />
-    </root>
-
-    <root level="info">
-        <appender-ref ref="file" />
+        <appender-ref ref="error-file" />
+        <appender-ref ref="latest-info-file" />
     </root>
 </configuration>
