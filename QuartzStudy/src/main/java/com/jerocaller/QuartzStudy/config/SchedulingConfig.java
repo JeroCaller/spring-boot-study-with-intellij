@@ -17,6 +17,17 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 
+/**
+ * <h3>Note</h3>
+ * <p>
+ *     스프링부트에서는 Quartz의 Scheduler 객체가 auto-configure되며,
+ *     JobDetail, Trigger, Calendar 타입의 Bean들을 자동으로 찾아 Scheduler 객체에
+ *     등록한다고 한다. 따라서 JobDetail과 Trigger는 각자 별도로 Bean으로 등록해야
+ *     에러 없이 작동 가능하다. 만약 하나의 메서드에 JobDetail, Trigger 객체를 모두 생성하고
+ *     Trigger 객체만 반환하는 방식을 취한다면 JobDetail 객체는 Spring Bean에 등록되지 않으므로
+ *     에러가 발생한다.
+ * </p>
+ */
 @Configuration
 @RequiredArgsConstructor
 public class SchedulingConfig implements SchedulerFactoryBeanCustomizer {

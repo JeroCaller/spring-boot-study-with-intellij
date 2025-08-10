@@ -16,4 +16,4 @@ spring:
     # 앱 실행 시 스케줄링 자동 시작 여부 설정.
     # 기본값은 true로, 앱 샐행과 동시에 자동으로 스케줄링이 되길 원한다면
     # 굳이 설정값을 작성하지 않아도 됨.
-    auto-startup: false
+    auto-startup: true
