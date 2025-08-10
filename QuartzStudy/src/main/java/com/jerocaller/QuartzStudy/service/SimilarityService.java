@@ -121,6 +121,7 @@ public class SimilarityService {
             }
         }
 
+        // 메모리 상에 저장된 임시 데이터들은 더 이상 사용되지 않으므로 미리 삭제하여 메모리 확보.
         memo.clear();
     }
 

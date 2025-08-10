@@ -39,7 +39,7 @@ public class SchedulingConfig implements SchedulerFactoryBeanCustomizer {
 
     /**
      * 자동 구성될 스케줄러 빈을 초기화하기전 커스텀하기.
-     * 여기서는 jobListener를 등록한다.
+     * 여기서는 jobListener 및 triggerListener를 등록한다.
      * 이 메서드에서 커스텀 설정이 적용된 후, 해당 스케줄러 빈이 초기화된다.
      *
      * @param schedulerFactoryBean
