@@ -27,7 +27,7 @@ public class News extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column(length = 100)
+    @Column(length = 500)
     private String title;
 
     @Column(length = 500)
