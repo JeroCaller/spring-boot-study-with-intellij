@@ -1,0 +1,107 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.5.7'
+	id 'io.spring.dependency-management' version '1.1.7'
+	id 'jacoco'
+}
+
+group = 'com.jerocaller'
+version = '0.0.1-SNAPSHOT'
+description = 'Project for study of Jacoco'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	compileOnly 'org.projectlombok:lombok'
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+	annotationProcessor 'org.projectlombok:lombok'
+	testCompileOnly 'org.projectlombok:lombok'
+	testAnnotationProcessor 'org.projectlombok:lombok'
+	testImplementation 'org.projectlombok:lombok'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+
+	// finalizedBy : 현재 task 실행 후 다음에 실행할 task 지정.
+	// 현재 task 실행의 성공 여부와 상관없이 무조건 다음 task 실행.
+	finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+	// dependsOn : 현재 task 실행 전 수행되어야 할 task 지정.
+	// 이전 task가 성공해야 현재 task가 실행됨.
+	dependsOn test
+
+	reports {
+		html.required = true;
+	}
+
+	// glob 패턴 정리.
+	// '*/' -> 0개 이상의 글자와 부합. 파일명에 주로 사용.
+	// '**/' -> 0개 이상의 글자와 부합하는 디렉토리와 매칭.
+	getClassDirectories().setFrom(files(classDirectories.files.collect {
+		fileTree(
+				dir: it,  // 정확히 이렇게 작성한다. 없으면 jacoco 관련 task가 실행 안됨.
+				excludes: [
+						'**/*Application.class',
+						'**/dto/*.class',
+						'**/common/*.class'
+				]
+		)
+	}))
+
+	finalizedBy jacocoTestCoverageVerification
+}
+
+jacocoTestCoverageVerification {
+	violationRules {
+		rule {
+			limit {
+				minimum = 0.30
+			}
+		}
+
+		rule {
+			enabled = true
+			element = 'CLASS'
+
+			// 여기서는 경로(/)가 아닌 패키지 및 클래스명으로 작성해야함.
+			// 즉 / 대신 마침표(.)를 사용해야함.
+			excludes = [
+					'**.*Application',
+					'**.dto.*',
+					'**.common.*'
+			]
+
+			limit {
+				counter = 'LINE'
+				value = 'COVEREDRATIO'
+				minimum = 0.75
+			}
+
+			limit {
+				counter = 'BRANCH'
+				value = 'COVEREDRATIO'
+				minimum = 0.75
+			}
+		}
+	}
+}
