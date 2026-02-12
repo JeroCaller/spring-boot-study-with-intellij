@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- 콘솔 출력 설정 -->
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{ISO8601} %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 일반 로그 파일 출력 설정 -->
+    <appender name="normal_log_file" class="ch.qos.logback.core.FileAppender">
+        <file>./src/main/resources/logs/all_logs.log</file>
+        <append>false</append>
+        <immediateFlush>true</immediateFlush>
+        <encoder>
+            <pattern>%d{ISO8601} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 모든 로그를 처리하도록 root 로거를 DEBUG 레벨로 설정 -->
+    <root level="DEBUG">
+        <appender-ref ref="console" />
+        <appender-ref ref="normal_log_file" />
+    </root>
+
+</configuration>
