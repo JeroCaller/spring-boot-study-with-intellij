@@ -1,10 +1,10 @@
 package com.jerocaller.AuthTokenSecurity.config;
 
 import com.jerocaller.libs.spoonsuits.web.jwt.DefaultJwtAuthenticationFilter;
-import com.jerocaller.libs.spoonsuits.web.jwt.JwtAuthenticationProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -25,10 +25,33 @@ public class SecurityConfig {
         "/v3/api-docs/**",
         "/swagger-ui.html",
         "/swagger-ui/index.html",
+        "/api/auth/login",
+        "/api/auth/logout"
     };
     private final DefaultJwtAuthenticationFilter defaultJwtAuthenticationFilter;
     private final AuthenticationEntryPoint authenticationEntryPoint;
 
+    /**
+     * <p>참고사항</p>
+     * <p>
+     *     URI 경로에 "*" 사용 시 한 레벨의 경로만 매칭한다. 반면 "**" 사용 시
+     *     하위의 모든 레벨의 경로를 매칭한다.
+     * </p>
+     * <ul>
+     * <li>
+     *     예1) `/api/users/*`의 경우 `/api/users/someone`은 매칭되지만,
+     *     `/api/users/someone/profile`은 매칭되지 않음.
+     * </li>
+     * <li>
+     *     예2) `/api/users/**`의 경우, `/api/users/someone`,
+     *     `/api/users/someone/profile` 모두와 매칭.
+     * </li>
+     * </ul>
+     *
+     * @param httpSecurity
+     * @return
+     * @throws Exception
+     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
@@ -36,6 +59,8 @@ public class SecurityConfig {
             .sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(permitAllUris).permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/users/*").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(
