@@ -1,5 +1,6 @@
 package com.jerocaller.AuthTokenSecurity.data.entity;
 
+import com.jerocaller.AuthTokenSecurity.data.dto.request.UserRequest;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -12,6 +13,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -43,5 +45,13 @@ public class User extends BaseEntity implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("USER"));
+    }
+
+    public static User toEntity(UserRequest userRequest, PasswordEncoder passwordEncoder) {
+        return User.builder()
+            .username(userRequest.getUsername())
+            .password(passwordEncoder.encode(userRequest.getPassword()))
+            .age(userRequest.getAge())
+            .build();
     }
 }

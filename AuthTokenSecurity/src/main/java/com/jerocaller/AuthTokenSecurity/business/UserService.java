@@ -2,10 +2,11 @@ package com.jerocaller.AuthTokenSecurity.business;
 
 import com.jerocaller.AuthTokenSecurity.data.dto.request.UserInfoPatchRequest;
 import com.jerocaller.AuthTokenSecurity.data.dto.request.UserRequest;
+import com.jerocaller.AuthTokenSecurity.data.dto.response.UserResponse;
 
 public interface UserService {
-    <R> R getUserInfo(String username);
-    <R> R register(UserRequest userRequest);
+    UserResponse getUserInfo(String username);
+    UserResponse register(UserRequest userRequest);
     <R> R updateUserInfo(UserInfoPatchRequest patchRequest);
     <R> R unregister();
 }
