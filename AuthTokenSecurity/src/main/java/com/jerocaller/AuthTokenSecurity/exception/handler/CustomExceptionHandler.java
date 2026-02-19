@@ -6,6 +6,7 @@ import com.jerocaller.AuthTokenSecurity.exception.custom.BaseCustomException;
 import com.jerocaller.libs.spoonsuits.web.validation.ValidationUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -16,12 +17,14 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class CustomExceptionHandler {
 
     @ExceptionHandler(value = Exception.class)
-    public void handleUnexpectedExcetpion(Exception e) {
+    public ResponseEntity<RestResponse.DetailedRestResponse<Object>> handleUnexpectedExcetpion(Exception e) {
         log.error("예상치 못한 예외 발생.");
 
         for (StackTraceElement stackTraceElement : e.getStackTrace()) {
             log.error(stackTraceElement.toString());
         }
+
+        return RestResponse.error(ResponseCode.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(value = UsernameNotFoundException.class)
@@ -29,6 +32,13 @@ public class CustomExceptionHandler {
         UsernameNotFoundException e
     ) {
         return RestResponse.error(ResponseCode.USER_NOT_FOUND);
+    }
+
+    @ExceptionHandler(value = BadCredentialsException.class)
+    public ResponseEntity<RestResponse.DetailedRestResponse<Object>> handleBadCredentialException(
+        BadCredentialsException e
+    ) {
+        return RestResponse.error(ResponseCode.AUTHENTICATION_FAILED);
     }
 
     @ExceptionHandler(value = MethodArgumentNotValidException.class)

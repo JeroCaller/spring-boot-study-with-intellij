@@ -18,6 +18,16 @@ public enum ResponseCode {
         HttpStatus.CONFLICT,
         "USERNAME_ALREADY_EXSISTS",
         "이미 존재하는 유저 네임입니다. 다른 이름을 사용해주세요"
+    ),
+    AUTHENTICATION_FAILED(
+        HttpStatus.UNAUTHORIZED,
+        "AUTHENTICATION_FAILED",
+        "인증에 실패하였습니다. 입력한 정보를 다시 확인해주세요."
+    ),
+    INTERNAL_SERVER_ERROR(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        "INTERNAL_SERVER_ERROR",
+        "서버 내부에서 문제가 발생하였습니다."
     )
     ;
 

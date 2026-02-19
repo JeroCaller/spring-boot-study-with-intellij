@@ -11,9 +11,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -23,10 +25,10 @@ public class AuthToken extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column(length = 200)
+    @Column(length = 500)
     private String refreshToken;
 
-    @Column(length = 200)
+    @Column(length = 500)
     private String previousRefreshToken;
 
     @Column

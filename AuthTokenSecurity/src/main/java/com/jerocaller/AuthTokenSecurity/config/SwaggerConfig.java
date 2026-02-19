@@ -1,8 +1,11 @@
 package com.jerocaller.AuthTokenSecurity.config;
 
+import com.jerocaller.libs.spoonsuits.web.jwt.JwtProperties;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -22,7 +25,9 @@ import org.springframework.context.annotation.Configuration;
  * </ul>
  */
 @Configuration
+@RequiredArgsConstructor
 public class SwaggerConfig {
+    private final JwtProperties jwtProperties;
 
     /**
      * <p>
@@ -35,14 +40,27 @@ public class SwaggerConfig {
     @Bean
     public OpenAPI openAPI() {
         String jwtSchemeName = "jwtAuth";
+        String refreshTokenCookieName = jwtProperties.getToken().getRefresh().getCookieName();
+
         SecurityScheme securityScheme = new SecurityScheme()
             .name(jwtSchemeName)
             .type(SecurityScheme.Type.HTTP)
             .scheme("bearer")
             .bearerFormat("JWT");
+        SecurityScheme refreshTokenCookieScheme = new SecurityScheme()
+            .name(refreshTokenCookieName)
+            .type(SecurityScheme.Type.APIKEY)
+            .in(SecurityScheme.In.COOKIE);
+
         Components components = new Components()
-            .addSecuritySchemes(jwtSchemeName, securityScheme);
+            .addSecuritySchemes(jwtSchemeName, securityScheme)
+            .addSecuritySchemes(refreshTokenCookieName, refreshTokenCookieScheme);
+        SecurityRequirement securityRequirement = new SecurityRequirement()
+            .addList(jwtSchemeName)
+            .addList(refreshTokenCookieName);
+
         return new OpenAPI()
-            .components(components);
+            .components(components)
+            .addSecurityItem(securityRequirement);
     }
 }

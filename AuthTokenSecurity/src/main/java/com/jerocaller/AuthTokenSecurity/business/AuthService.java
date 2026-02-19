@@ -1,10 +1,12 @@
 package com.jerocaller.AuthTokenSecurity.business;
 
-import com.jerocaller.AuthTokenSecurity.data.dto.AuthTokens;
-import com.jerocaller.AuthTokenSecurity.data.dto.request.UserRequest;
+import com.jerocaller.AuthTokenSecurity.data.dto.AuthTokensDTO;
+import com.jerocaller.AuthTokenSecurity.data.dto.request.AuthRequest;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 public interface AuthService {
-    <R> R login(UserRequest userRequest);
-    <R> R logout();
-    <R> R reissueTokens(AuthTokens authTokens);
+    AuthTokensDTO login(AuthRequest authRequest);
+    void logout(HttpServletRequest request, HttpServletResponse response);
+    <R> R reissueTokens(AuthTokensDTO authTokensDTO);
 }
