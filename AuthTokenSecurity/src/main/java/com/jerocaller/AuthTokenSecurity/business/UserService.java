@@ -7,6 +7,6 @@ import com.jerocaller.AuthTokenSecurity.data.dto.response.UserResponse;
 public interface UserService {
     UserResponse getUserInfo(String username);
     UserResponse register(UserRequest userRequest);
-    <R> R updateUserInfo(UserInfoPatchRequest patchRequest);
+    UserResponse updateUserInfo(UserInfoPatchRequest patchRequest);
     <R> R unregister();
 }

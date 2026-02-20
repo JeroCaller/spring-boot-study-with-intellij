@@ -24,6 +24,16 @@ public enum ResponseCode {
         "AUTHENTICATION_FAILED",
         "인증에 실패하였습니다. 입력한 정보를 다시 확인해주세요."
     ),
+    NOT_AUTHENTICATED(
+        HttpStatus.UNAUTHORIZED,
+        "NOT_AUTHENTICATED",
+        "미인증자는 접근할 수 없습니다. 인증을 먼저 하세요"
+    ),
+    PASSWORD_NOT_MATCHED(
+        HttpStatus.CONFLICT,
+        "PASSWORD_NOT_MATCHED",
+        "비밀번호가 일치하지 않습니다. 다시 시도해주세요."
+    ),
     INTERNAL_SERVER_ERROR(
         HttpStatus.INTERNAL_SERVER_ERROR,
         "INTERNAL_SERVER_ERROR",

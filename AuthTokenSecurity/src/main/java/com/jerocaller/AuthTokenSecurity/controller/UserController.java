@@ -47,9 +47,11 @@ public class UserController {
     }
 
     @PatchMapping
-    public RestResponse updateUserInfo(
-        @Valid @RequestBody UserInfoPatchRequest userInfoPatchRequest) {
-        return null;
+    public ResponseEntity<RestResponse.DetailedRestResponse<UserResponse>> updateUserInfo(
+        @Valid @RequestBody UserInfoPatchRequest userInfoPatchRequest
+    ) {
+        UserResponse userResponse = userService.updateUserInfo(userInfoPatchRequest);
+        return RestResponse.success(userResponse);
     }
 
     @DeleteMapping
