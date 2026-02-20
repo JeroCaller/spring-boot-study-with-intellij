@@ -8,5 +8,4 @@ import jakarta.servlet.http.HttpServletResponse;
 public interface AuthService {
     AuthTokensDTO login(AuthRequest authRequest);
     void logout(HttpServletRequest request, HttpServletResponse response);
-    <R> R reissueTokens(AuthTokensDTO authTokensDTO);
 }

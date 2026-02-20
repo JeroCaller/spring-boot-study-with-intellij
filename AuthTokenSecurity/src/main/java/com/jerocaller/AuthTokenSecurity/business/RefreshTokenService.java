@@ -6,6 +6,5 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 public interface RefreshTokenService {
     AuthTokensDTO generateNewRefreshToken(UserDetails userDetails);
-    AuthTokensDTO reissueRefreshToken(AuthTokensDTO authTokensDTO);
     void invalidateRefreshToken(HttpServletRequest httpRequest);
 }

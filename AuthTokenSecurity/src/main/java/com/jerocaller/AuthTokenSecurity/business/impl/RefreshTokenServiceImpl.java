@@ -52,11 +52,6 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     }
 
     @Override
-    public AuthTokensDTO reissueRefreshToken(AuthTokensDTO authTokensDTO) {
-        return null;
-    }
-
-    @Override
     @Transactional
     public void invalidateRefreshToken(HttpServletRequest httpRequest) {
         Cookie refreshTokenCookie =  WebUtils.getCookie(httpRequest,

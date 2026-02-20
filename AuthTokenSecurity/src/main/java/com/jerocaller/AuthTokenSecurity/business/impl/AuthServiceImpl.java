@@ -1,16 +1,15 @@
 package com.jerocaller.AuthTokenSecurity.business.impl;
 
 import com.jerocaller.AuthTokenSecurity.business.AuthService;
+import com.jerocaller.AuthTokenSecurity.business.AuthTokenService;
 import com.jerocaller.AuthTokenSecurity.business.RefreshTokenService;
 import com.jerocaller.AuthTokenSecurity.data.dto.AuthTokensDTO;
 import com.jerocaller.AuthTokenSecurity.data.dto.request.AuthRequest;
 import com.jerocaller.AuthTokenSecurity.data.entity.User;
-import com.jerocaller.libs.spoonsuits.web.jwt.JwtAuthenticationProvider;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -23,11 +22,10 @@ import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class AuthServiceImpl implements AuthService {
-    private final JwtAuthenticationProvider jwtAuthenticationProvider;
     private final UserDetailsService userDetailsService;
     private final RefreshTokenService refreshTokenService;
+    private final AuthTokenService authTokenService;
     private final PasswordEncoder passwordEncoder;
     private final SecurityContextLogoutHandler logoutHandler;
 
@@ -40,17 +38,11 @@ public class AuthServiceImpl implements AuthService {
             throw new BadCredentialsException("인증 실패");
         }
 
-        AuthTokensDTO refreshTokenDto = refreshTokenService.generateNewRefreshToken(userDetails);
-
         // 현재 시각을 최근 로그인 시각으로 저장.
         User currentUser = (User) userDetails;
         currentUser.setLastLoginAt(LocalDateTime.now());
 
-        String newAccessToken = jwtAuthenticationProvider.createAccessToken(userDetails);
-        refreshTokenDto.setAccessToken(newAccessToken);
-        log.info("access token length: {}", newAccessToken.length());
-
-        return refreshTokenDto;
+        return authTokenService.generateAuthTokens(userDetails);
     }
 
     @Override
@@ -61,10 +53,5 @@ public class AuthServiceImpl implements AuthService {
             response,
             SecurityContextHolder.getContext().getAuthentication()
         );
-    }
-
-    @Override
-    public <R> R reissueTokens(AuthTokensDTO authTokensDTO) {
-        return null;
     }
 }
