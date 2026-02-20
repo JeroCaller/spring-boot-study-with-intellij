@@ -1,23 +1,29 @@
 package com.jerocaller.AuthTokenSecurity.business.impl;
 
+import com.jerocaller.AuthTokenSecurity.business.AuthTokenService;
 import com.jerocaller.AuthTokenSecurity.business.UserService;
+import com.jerocaller.AuthTokenSecurity.data.dto.AuthTokensDTO;
 import com.jerocaller.AuthTokenSecurity.data.dto.request.UserInfoPatchRequest;
 import com.jerocaller.AuthTokenSecurity.data.dto.request.UserRequest;
 import com.jerocaller.AuthTokenSecurity.data.dto.response.UserResponse;
+import com.jerocaller.AuthTokenSecurity.data.dto.response.UserUpdateResponse;
 import com.jerocaller.AuthTokenSecurity.data.entity.User;
 import com.jerocaller.AuthTokenSecurity.data.repository.UserRepository;
 import com.jerocaller.AuthTokenSecurity.exception.custom.UsernameAlreadyExistsException;
 import com.jerocaller.AuthTokenSecurity.util.AuthUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserServiceImpl implements UserService {
     private final UserDetailsService userDetailsService;
+    private final AuthTokenService authTokenService;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
@@ -40,21 +46,30 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserResponse updateUserInfo(UserInfoPatchRequest patchRequest) {
+    public UserUpdateResponse updateUserInfo(UserInfoPatchRequest patchRequest) {
         String currentUsername = AuthUtil.getAuth();
+        log.info("current username: {}", currentUsername);
         User currentUser = (User) userDetailsService.loadUserByUsername(currentUsername);
+        boolean willUsernameBeChanged = (patchRequest.getUsername() != null) &&
+            !currentUser.getUsername().equals(patchRequest.getUsername());
 
         // 다른 유저의 유저네임으로 변경 방지
-        if (!currentUser.getUsername().equals(patchRequest.getUsername()) &&
-            userRepository.existsByUsername(patchRequest.getUsername())
-        ) {
+        if (willUsernameBeChanged && userRepository.existsByUsername(patchRequest.getUsername())) {
             throw new UsernameAlreadyExistsException();
         }
 
         currentUser.update(patchRequest, passwordEncoder);
+        UserResponse userResponse = UserResponse.toDto(currentUser);
+        AuthTokensDTO newAuthTokensDto = null;
 
-        // TODO - username이 변경된 경우 jwt에도 반영되어야 함.
-        return UserResponse.toDto(currentUser);
+        if (willUsernameBeChanged) {
+            newAuthTokensDto = authTokenService.generateAuthTokens(currentUser);
+        }
+
+        return UserUpdateResponse.builder()
+            .userResponse(userResponse)
+            .authTokensDTO(newAuthTokensDto)
+            .build();
     }
 
     @Override

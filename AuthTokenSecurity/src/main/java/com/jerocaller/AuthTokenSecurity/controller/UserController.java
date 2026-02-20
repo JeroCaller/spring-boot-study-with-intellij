@@ -5,6 +5,7 @@ import com.jerocaller.AuthTokenSecurity.data.dto.request.UserInfoPatchRequest;
 import com.jerocaller.AuthTokenSecurity.data.dto.request.UserRequest;
 import com.jerocaller.AuthTokenSecurity.data.dto.response.RestResponse;
 import com.jerocaller.AuthTokenSecurity.data.dto.response.UserResponse;
+import com.jerocaller.AuthTokenSecurity.data.dto.response.UserUpdateResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -47,11 +48,11 @@ public class UserController {
     }
 
     @PatchMapping
-    public ResponseEntity<RestResponse.DetailedRestResponse<UserResponse>> updateUserInfo(
+    public ResponseEntity<RestResponse.DetailedRestResponse<UserUpdateResponse>> updateUserInfo(
         @Valid @RequestBody UserInfoPatchRequest userInfoPatchRequest
     ) {
-        UserResponse userResponse = userService.updateUserInfo(userInfoPatchRequest);
-        return RestResponse.success(userResponse);
+        UserUpdateResponse userUpdateResponse = userService.updateUserInfo(userInfoPatchRequest);
+        return RestResponse.success(userUpdateResponse);
     }
 
     @DeleteMapping
