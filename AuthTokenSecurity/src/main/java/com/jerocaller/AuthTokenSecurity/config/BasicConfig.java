@@ -6,6 +6,10 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * <p>각종 설정들을 하는 곳</p>
+ * <p>별도의 모듈로 분리하여 작성하기엔 그 코드가 짧은 설정들을 모아 등록한다.</p>
+ */
 @Configuration
 public class BasicConfig {
 

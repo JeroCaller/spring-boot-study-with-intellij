@@ -7,16 +7,21 @@ import com.jerocaller.AuthTokenSecurity.data.dto.request.UserInfoPatchRequest;
 import com.jerocaller.AuthTokenSecurity.data.dto.request.UserRequest;
 import com.jerocaller.AuthTokenSecurity.data.dto.response.UserResponse;
 import com.jerocaller.AuthTokenSecurity.data.dto.response.UserUpdateResponse;
+import com.jerocaller.AuthTokenSecurity.data.entity.AuthToken;
 import com.jerocaller.AuthTokenSecurity.data.entity.User;
+import com.jerocaller.AuthTokenSecurity.data.repository.AuthTokenRepository;
 import com.jerocaller.AuthTokenSecurity.data.repository.UserRepository;
 import com.jerocaller.AuthTokenSecurity.exception.custom.UsernameAlreadyExistsException;
 import com.jerocaller.AuthTokenSecurity.util.AuthUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +30,7 @@ public class UserServiceImpl implements UserService {
     private final UserDetailsService userDetailsService;
     private final AuthTokenService authTokenService;
     private final UserRepository userRepository;
+    private final AuthTokenRepository authTokenRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -73,7 +79,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public <R> R unregister() {
-        return null;
+    @Transactional
+    public UserResponse unregister() {
+        String username = AuthUtil.getAuth();
+        UserDetails currentUserDetails = userDetailsService.loadUserByUsername(username);
+        Optional<AuthToken> optAuthToken = authTokenRepository.findByUser(currentUserDetails);
+        optAuthToken.ifPresent(authTokenRepository::delete);
+        userRepository.delete((User) currentUserDetails);
+        return UserResponse.toDto((User) currentUserDetails);
     }
 }

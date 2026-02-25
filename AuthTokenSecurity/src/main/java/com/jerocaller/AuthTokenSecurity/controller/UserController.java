@@ -56,7 +56,8 @@ public class UserController {
     }
 
     @DeleteMapping
-    public RestResponse unregister() {
-        return null;
+    public ResponseEntity<RestResponse.DetailedRestResponse<UserResponse>> unregister() {
+        UserResponse userResponse = userService.unregister();
+        return RestResponse.success(userResponse, "성공적으로 회원 탈퇴하였습니다.");
     }
 }

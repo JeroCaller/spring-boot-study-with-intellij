@@ -43,6 +43,17 @@ public class RestResponse<T> {
         return toResponseEntity(DetailedRestResponse.toDetailedRestResponse(restResponse));
     }
 
+    public static <T> ResponseEntity<DetailedRestResponse<T>> success(T data, String message) {
+        ResponseCode successCode = ResponseCode.OK;
+        DetailedRestResponse<T> detailedRestResponse = DetailedRestResponse.<T>builder()
+            .httpStatus(successCode.getHttpStatus())
+            .code(successCode.getCode())
+            .message(message)
+            .data(data)
+            .build();
+        return toResponseEntity(detailedRestResponse);
+    }
+
     public static <T> ResponseEntity<DetailedRestResponse<T>> error(ResponseCode responseCode) {
         RestResponse<T> restResponse = RestResponse.<T>builder()
             .responseCode(responseCode)

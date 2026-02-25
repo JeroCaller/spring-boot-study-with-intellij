@@ -9,5 +9,5 @@ public interface UserService {
     UserResponse getUserInfo(String username);
     UserResponse register(UserRequest userRequest);
     UserUpdateResponse updateUserInfo(UserInfoPatchRequest patchRequest);
-    <R> R unregister();
+    UserResponse unregister();
 }

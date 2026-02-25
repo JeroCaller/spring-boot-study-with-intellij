@@ -19,6 +19,7 @@ public class CustomExceptionHandler {
     @ExceptionHandler(value = Exception.class)
     public ResponseEntity<RestResponse.DetailedRestResponse<Object>> handleUnexpectedExcetpion(Exception e) {
         log.error("예상치 못한 예외 발생.");
+        log.error(e.getMessage());
 
         for (StackTraceElement stackTraceElement : e.getStackTrace()) {
             log.error(stackTraceElement.toString());
