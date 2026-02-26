@@ -24,6 +24,7 @@ public class AuthenticationEntryPointImpl implements AuthenticationEntryPoint {
         HttpServletResponse response,
         AuthenticationException authException) throws IOException, ServletException
     {
+        // TODO - refactoring using RestResponse
         RestResponse<Object> restResponse = RestResponse.builder()
             .responseCode(ResponseCode.AUTHENTICATION_FAILED)
             .build();
@@ -32,7 +33,7 @@ public class AuthenticationEntryPointImpl implements AuthenticationEntryPoint {
             .toDetailedRestResponse(restResponse);
 
         response.setStatus(restResponse.getResponseCode().getHttpStatus().value());
-        response.setContentType("application/json");
+        response.setContentType("application/json");  // TODO - refactoring using HttpResponseUtil
         response.setCharacterEncoding("utf-8");
         response.getWriter().write(
             objectMapper.writeValueAsString(detailedRestResponse)

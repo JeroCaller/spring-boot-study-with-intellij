@@ -1,5 +1,6 @@
 package com.jerocaller.AuthTokenSecurity.config;
 
+import com.jerocaller.AuthTokenSecurity.jwt.JwtExceptionFilter;
 import com.jerocaller.libs.spoonsuits.web.jwt.DefaultJwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -28,6 +29,7 @@ public class SecurityConfig {
         "/api/auth/login",
         "/api/auth/logout"
     };
+    private final JwtExceptionFilter jwtExceptionFilter;
     private final DefaultJwtAuthenticationFilter defaultJwtAuthenticationFilter;
     private final AuthenticationEntryPoint authenticationEntryPoint;
 
@@ -61,6 +63,10 @@ public class SecurityConfig {
                 .requestMatchers(permitAllUris).permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
                 .anyRequest().authenticated()
+            )
+            .addFilterBefore(
+                jwtExceptionFilter,
+                defaultJwtAuthenticationFilter.getClass()
             )
             .addFilterBefore(
                 defaultJwtAuthenticationFilter,

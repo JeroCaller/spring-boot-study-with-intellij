@@ -35,6 +35,10 @@ public class RestResponse<T> {
         }
     }
 
+    public DetailedRestResponse<T> toDetailedRestResponse() {
+        return DetailedRestResponse.toDetailedRestResponse(this);
+    }
+
     public static <T> ResponseEntity<DetailedRestResponse<T>> success(T data) {
         RestResponse<T> restResponse = RestResponse.<T>builder()
             .responseCode(ResponseCode.OK)

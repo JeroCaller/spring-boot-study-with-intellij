@@ -38,6 +38,11 @@ public enum ResponseCode {
         HttpStatus.INTERNAL_SERVER_ERROR,
         "INTERNAL_SERVER_ERROR",
         "서버 내부에서 문제가 발생하였습니다."
+    ),
+    JWT_EXPIRED(
+        HttpStatus.UNAUTHORIZED,
+        "JWT_EXPIRED",
+        "인증 토큰이 만료되었습니다. 재인증을 위해 새 토큰으로 갱신해야합니다."
     )
     ;
 
