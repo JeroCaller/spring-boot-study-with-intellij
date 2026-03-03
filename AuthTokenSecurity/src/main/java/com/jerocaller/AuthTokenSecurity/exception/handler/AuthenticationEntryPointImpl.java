@@ -3,6 +3,7 @@ package com.jerocaller.AuthTokenSecurity.exception.handler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jerocaller.AuthTokenSecurity.data.dto.response.ResponseCode;
 import com.jerocaller.AuthTokenSecurity.data.dto.response.RestResponse;
+import com.jerocaller.AuthTokenSecurity.util.HttpResponseUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -24,17 +25,14 @@ public class AuthenticationEntryPointImpl implements AuthenticationEntryPoint {
         HttpServletResponse response,
         AuthenticationException authException) throws IOException, ServletException
     {
-        // TODO - refactoring using RestResponse
         RestResponse<Object> restResponse = RestResponse.builder()
             .responseCode(ResponseCode.AUTHENTICATION_FAILED)
             .build();
-        RestResponse.DetailedRestResponse<Object> detailedRestResponse = RestResponse
-            .DetailedRestResponse
-            .toDetailedRestResponse(restResponse);
+        RestResponse.DetailedRestResponse<Object> detailedRestResponse = restResponse
+            .toDetailedRestResponse();
 
         response.setStatus(restResponse.getResponseCode().getHttpStatus().value());
-        response.setContentType("application/json");  // TODO - refactoring using HttpResponseUtil
-        response.setCharacterEncoding("utf-8");
+        HttpResponseUtil.configResponse(response);
         response.getWriter().write(
             objectMapper.writeValueAsString(detailedRestResponse)
         );
