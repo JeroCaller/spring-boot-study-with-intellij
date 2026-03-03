@@ -18,11 +18,19 @@ public class JwtExceptionHandlerFactory {
         return jwtExceptionHandlerFactory;
     }
 
+    public void setDefaultHandler(JwtExceptionHandler handler) {
+        handlerMapper.put(JwtException.class, handler);
+    }
+
     public void register(Class<? extends JwtException> jwtException, JwtExceptionHandler handler) {
         handlerMapper.put(jwtException, handler);
     }
 
     public JwtExceptionHandler getHandler(Class<? extends JwtException> jwtException) {
-        return handlerMapper.get(jwtException);
+        if (handlerMapper.containsKey(jwtException)) {
+            return handlerMapper.get(jwtException);
+        }
+
+        return handlerMapper.get(JwtException.class);
     }
 }

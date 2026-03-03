@@ -5,6 +5,7 @@ import com.jerocaller.AuthTokenSecurity.data.dto.AuthTokensDTO;
 import com.jerocaller.AuthTokenSecurity.data.entity.AuthToken;
 import com.jerocaller.AuthTokenSecurity.data.entity.User;
 import com.jerocaller.AuthTokenSecurity.data.repository.AuthTokenRepository;
+import com.jerocaller.AuthTokenSecurity.exception.custom.ReLoginRequiredException;
 import com.jerocaller.libs.spoonsuits.web.jwt.JwtAuthenticationProvider;
 import com.jerocaller.libs.spoonsuits.web.jwt.JwtProperties;
 import jakarta.servlet.http.Cookie;
@@ -37,6 +38,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
             AuthToken authToken = optAuthTokenEntity.get();
             authToken.setPreviousRefreshToken(authToken.getRefreshToken());
             authToken.setRefreshToken(newRefreshToken);
+            // TODO - is_valid = true로 하는 코드 추가.
         } else {
             AuthToken newAuthTokenEntity = AuthToken.builder()
                 .user((User) userDetails)
@@ -72,5 +74,39 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         foundAuthToken.setPreviousRefreshToken(foundAuthToken.getRefreshToken());
         foundAuthToken.setValid(false);
         foundAuthToken.setRefreshToken(null);
+    }
+
+    @Override
+    @Transactional
+    public void detectTokenReuse(AuthTokensDTO oldAuthTokensDto) {
+        if (!jwtAuthenticationProvider.validateToken(oldAuthTokensDto.getRefreshToken())) {
+            return;
+        }
+
+        if (authTokenRepository.existsByRefreshToken(oldAuthTokensDto.getRefreshToken())) {
+            return;
+        }
+
+        Optional<AuthToken> optAuthToken = authTokenRepository
+            .findByPreviousRefreshToken(oldAuthTokensDto.getRefreshToken());
+
+        if (optAuthToken.isEmpty()) {
+            return;
+        }
+
+        AuthToken foundAuthToken = optAuthToken.get();
+        warnTokenReuseToServer(foundAuthToken);
+        foundAuthToken.setValid(false);
+        throw new ReLoginRequiredException();
+    }
+
+    private void warnTokenReuseToServer(AuthToken foundAuthToken) {
+        log.warn("Refresh token 재사용이 감지되었습니다.");
+        log.warn("=== 재사용된 refresh token 관련 정보 ===");
+        log.warn("auth token id : {}", foundAuthToken.getId());
+        log.warn("was the refresh token valid?: {}", foundAuthToken.isValid());
+        log.warn("user id: {}", foundAuthToken.getUser().getId());
+        log.warn("username: {}", foundAuthToken.getUser().getUsername());
+        log.warn("=====");
     }
 }

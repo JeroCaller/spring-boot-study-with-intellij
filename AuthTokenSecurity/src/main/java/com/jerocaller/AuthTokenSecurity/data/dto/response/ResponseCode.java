@@ -34,15 +34,30 @@ public enum ResponseCode {
         "PASSWORD_NOT_MATCHED",
         "비밀번호가 일치하지 않습니다. 다시 시도해주세요."
     ),
+    RELOGIN_REQUIRED(
+        HttpStatus.UNAUTHORIZED,
+        "RELOGIN_REQUIRED",
+        "재로그인이 필요합니다. 다시 인증하세요."
+    ),
     INTERNAL_SERVER_ERROR(
         HttpStatus.INTERNAL_SERVER_ERROR,
         "INTERNAL_SERVER_ERROR",
         "서버 내부에서 문제가 발생하였습니다."
     ),
+    JWT_UNKNOWN_ERROR(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        "JWT_UNKNOWN_ERROR",
+        "처리되지 않은 JWT 관련 예외가 발생하였습니다."
+    ),
     JWT_EXPIRED(
         HttpStatus.UNAUTHORIZED,
         "JWT_EXPIRED",
         "인증 토큰이 만료되었습니다. 재인증을 위해 새 토큰으로 갱신해야합니다."
+    ),
+    JWT_ILLEGAL_ARGUMENT_INSERTED(
+        HttpStatus.BAD_REQUEST,
+        "JWT_ILLEGAL_ARGUMENT_INSERTED",
+        "null 또는 빈 JWT 토큰이 입력되었습니다. 유효한 형식의 JWT 토큰을 입력하세요."
     )
     ;
 

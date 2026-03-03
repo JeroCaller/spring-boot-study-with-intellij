@@ -3,8 +3,11 @@ package com.jerocaller.AuthTokenSecurity.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.jerocaller.AuthTokenSecurity.exception.custom.jwt.JwtIllegalArgumentException;
 import com.jerocaller.AuthTokenSecurity.jwt.JwtExceptionHandlerFactory;
+import com.jerocaller.AuthTokenSecurity.jwt.impl.DefaultJwtExceptionHandler;
 import com.jerocaller.AuthTokenSecurity.jwt.impl.ExpiredJwtExceptionHandler;
+import com.jerocaller.AuthTokenSecurity.jwt.impl.JwtIllegalArgumentExceptionHandler;
 import io.jsonwebtoken.ExpiredJwtException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -47,7 +50,9 @@ public class BasicConfig {
     @Bean
     public JwtExceptionHandlerFactory getJwtExceptionHandlerFactory() {
         JwtExceptionHandlerFactory factory = JwtExceptionHandlerFactory.getInstance();
+        factory.setDefaultHandler(new DefaultJwtExceptionHandler());
         factory.register(ExpiredJwtException.class, new ExpiredJwtExceptionHandler());
+        factory.register(JwtIllegalArgumentException.class, new JwtIllegalArgumentExceptionHandler());
         return factory;
     }
 }

@@ -1,5 +1,6 @@
 package com.jerocaller.AuthTokenSecurity.jwt;
 
+import com.jerocaller.AuthTokenSecurity.exception.custom.jwt.JwtIllegalArgumentException;
 import com.jerocaller.libs.spoonsuits.web.jwt.JwtProperties;
 import com.jerocaller.libs.spoonsuits.web.jwt.impl.DefaultJwtAuthenticationProviderImpl;
 import io.jsonwebtoken.JwtException;
@@ -35,6 +36,8 @@ public class CustomJwtAuthenticationProvider extends DefaultJwtAuthenticationPro
             return true;
         } catch (JwtException e) {
             throw e;
+        } catch (IllegalArgumentException e) {
+            throw new JwtIllegalArgumentException(e.getMessage(), e.getCause());
         } catch (Exception e) {
             return false;
         }
