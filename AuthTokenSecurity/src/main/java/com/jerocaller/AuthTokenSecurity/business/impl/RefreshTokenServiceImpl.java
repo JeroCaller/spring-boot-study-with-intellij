@@ -38,7 +38,10 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
             AuthToken authToken = optAuthTokenEntity.get();
             authToken.setPreviousRefreshToken(authToken.getRefreshToken());
             authToken.setRefreshToken(newRefreshToken);
-            // TODO - is_valid = true로 하는 코드 추가.
+
+            // 이전에 로그아웃한 경우 is_valid = false가 된다.
+            // 이후 다시 로그인한 후에는 refresh token 사용 가능하도록 true로 만들어야 한다.
+            authToken.setValid(true);
         } else {
             AuthToken newAuthTokenEntity = AuthToken.builder()
                 .user((User) userDetails)
