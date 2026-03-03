@@ -26,7 +26,7 @@ public class UserController {
 
     /**
      * <p>특정 유저 조회</p>
-     * <p>민감하지 않은 정보만 조회. 미인증 사용자도 조회 가능.</p>
+     * <p>민감하지 않은 정보만 조회. 인증한 사용자만 이용 가능</p>
      *
      * @param username
      * @return
