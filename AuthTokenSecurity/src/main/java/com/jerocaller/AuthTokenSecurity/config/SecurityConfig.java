@@ -64,12 +64,12 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             )
             .addFilterBefore(
-                jwtExceptionFilter,
-                defaultJwtAuthenticationFilter.getClass()
-            )
-            .addFilterBefore(
                 defaultJwtAuthenticationFilter,
                 UsernamePasswordAuthenticationFilter.class
+            )
+            .addFilterBefore(
+                jwtExceptionFilter,
+                defaultJwtAuthenticationFilter.getClass()
             )
             .exceptionHandling(handler -> handler
                 .authenticationEntryPoint(authenticationEntryPoint)
