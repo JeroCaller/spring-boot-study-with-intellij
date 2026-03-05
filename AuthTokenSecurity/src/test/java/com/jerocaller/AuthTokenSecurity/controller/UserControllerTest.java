@@ -1,10 +1,14 @@
 package com.jerocaller.AuthTokenSecurity.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jayway.jsonpath.JsonPath;
+import com.jerocaller.AuthTokenSecurity.data.dto.AuthTokensDTO;
+import com.jerocaller.AuthTokenSecurity.data.dto.request.AuthRequest;
 import com.jerocaller.AuthTokenSecurity.data.dto.request.UserRequest;
 import com.jerocaller.AuthTokenSecurity.data.dto.response.ResponseCode;
 import com.jerocaller.AuthTokenSecurity.data.entity.User;
 import com.jerocaller.AuthTokenSecurity.data.repository.UserRepository;
+import com.jerocaller.libs.spoonsuits.web.jwt.JwtAuthenticationProvider;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,10 +18,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -143,5 +149,93 @@ class UserControllerTest {
         assertThat(optUser.isPresent()).isTrue();
         User member = optUser.get();
         assertThat(member.getAge()).isNotEqualTo(newUserRequest.getAge());
+    }
+
+    @Test
+    @DisplayName("로그인 후 보호된 자원에 접근가능해야한다.")
+    void shouldBeAbleToAccessToProtectedResourceAfterLogin() throws Exception {
+        UserRequest userRequest = UserRequest.builder()
+            .username("gugudan123")
+            .password("gugudan123")
+            .age(30)
+            .build();
+
+        // 회원가입
+        mockMvc.perform(post(USER_REQUEST_URI)
+            .content(objectMapper.writeValueAsString(userRequest))
+            .contentType(MediaType.APPLICATION_JSON)
+        )
+            .andExpect(status().isOk())
+            .andDo(print());
+
+        // 로그인
+        AuthRequest authRequest = AuthRequest.builder()
+            .username(userRequest.getUsername())
+            .password(userRequest.getPassword())
+            .build();
+        final MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
+            .content(objectMapper.writeValueAsString(authRequest))
+            .contentType(MediaType.APPLICATION_JSON)
+        )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data").exists())
+            .andExpect(jsonPath("$.data.accessToken").exists())
+            .andExpect(jsonPath("$.data.refreshToken").exists())
+            .andDo(print())
+            .andReturn();
+        AuthTokensDTO responseAuthTokens = AuthTokensDTO.builder()
+            .accessToken(JsonPath.read(
+                loginResult.getResponse().getContentAsString(),
+                "$.data.accessToken"
+            ))
+            .refreshToken(JsonPath.read(
+                loginResult.getResponse().getContentAsString(),
+                "$.data.refreshToken"
+            ))
+            .build();
+
+        // 보호된 자원 요청
+        mockMvc.perform(get(USER_REQUEST_URI + "/{username}", userRequest.getUsername())
+                .header(
+                    JwtAuthenticationProvider.AUTHORIZATION,
+                    JwtAuthenticationProvider.BEARER + responseAuthTokens.getAccessToken()
+                )
+        )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data").exists())
+            .andExpect(jsonPath("$.data.username").value(userRequest.getUsername()))
+            .andExpect(jsonPath("$.data.age").value(userRequest.getAge()))
+            .andExpect(jsonPath("$.data.lastLoginAt").exists())
+            .andDo(print());
+    }
+
+    @Test
+    @DisplayName("비로그인 사용자는 보호된 자원에 접근 불가능해야한다.")
+    void shouldNotAbleToAccessToProtectedResourceIfNotLogin() throws Exception {
+        UserRequest userRequest = UserRequest.builder()
+            .username("gugudan123")
+            .password("gugudan123")
+            .age(30)
+            .build();
+
+        // 회원가입
+        mockMvc.perform(post(USER_REQUEST_URI)
+                .content(objectMapper.writeValueAsString(userRequest))
+                .contentType(MediaType.APPLICATION_JSON)
+            )
+            .andExpect(status().isOk())
+            .andDo(print());
+
+        // 보호된 자원 요청
+        mockMvc.perform(get(USER_REQUEST_URI + "/{username}", userRequest.getUsername()))
+            .andExpect(status().isUnauthorized())
+            .andExpect(jsonPath("$.message")
+                .value(ResponseCode.AUTHENTICATION_FAILED.getMessage())
+            )
+            .andExpect(jsonPath("$.code")
+                .value(ResponseCode.AUTHENTICATION_FAILED.getCode())
+            )
+            .andExpect(jsonPath("$.data").doesNotExist())
+            .andDo(print());
     }
 }
