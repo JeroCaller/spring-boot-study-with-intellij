@@ -1,0 +1,147 @@
+package com.jerocaller.AuthTokenSecurity.controller;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jerocaller.AuthTokenSecurity.data.dto.request.UserRequest;
+import com.jerocaller.AuthTokenSecurity.data.dto.response.ResponseCode;
+import com.jerocaller.AuthTokenSecurity.data.entity.User;
+import com.jerocaller.AuthTokenSecurity.data.repository.UserRepository;
+import jakarta.transaction.Transactional;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+/**
+ * <p>참고 사항</p>
+ * <ul>
+ *     <li>
+ *         <a href="https://docs.spring.io/spring-framework/reference/testing/testcontext-framework/tx.html">
+ *             Spring - Transactional Management
+ *         </a>
+ *     </li>
+ * </ul>
+ */
+@SpringBootTest
+@Transactional  // 테스트 케이스 실행 때마다 테스트 DB가 롤백된다.
+@AutoConfigureMockMvc
+@ActiveProfiles("test")
+class UserControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    private final String USER_REQUEST_URI = "/api/users";
+
+    @Test
+    @DisplayName("회원가입 성공 여부 테스트.")
+    void testUserRegister() throws Exception {
+        UserRequest userRequest = UserRequest.builder()
+            .username("gugudan123")
+            .password("gugudan123")
+            .age(30)
+            .build();
+
+        mockMvc.perform(post(USER_REQUEST_URI)
+            .content(objectMapper.writeValueAsString(userRequest))
+            .contentType(MediaType.APPLICATION_JSON)
+        )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.httpStatus")
+                .value(ResponseCode.OK.getHttpStatus().getReasonPhrase())
+            )
+            .andExpect(jsonPath("$.message").value(ResponseCode.OK.getMessage()))
+            .andExpect(jsonPath("$.data").exists())
+            .andExpect(jsonPath("$.data.username").value(userRequest.getUsername()))
+            .andDo(print());
+
+        assertThat(userRepository.existsByUsername(userRequest.getUsername())).isTrue();
+    }
+
+    @Test
+    @DisplayName("회원가입 시 특정 필드가 조건을 미충족 시 회원가입이 거절된다.")
+    void testInvalidUserRegister() throws Exception {
+        UserRequest userRequest = UserRequest.builder()
+            .username("")  // invalid format
+            .password("12345")
+            .age(50)
+            .build();
+
+        mockMvc.perform(post(USER_REQUEST_URI)
+                .content(objectMapper.writeValueAsString(userRequest))
+                .contentType(MediaType.APPLICATION_JSON)
+            )
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.message")
+                .value(ResponseCode.INVALID_USER_FORMAT.getMessage())
+            )
+            .andExpect(jsonPath("$.code")
+                .value(ResponseCode.INVALID_USER_FORMAT.getCode())
+            )
+            .andExpect(jsonPath("$.data").exists())
+            .andExpect(jsonPath("$.data.username").exists())
+            .andExpect(jsonPath("$.data.password").doesNotExist())
+            .andExpect(jsonPath("$.data.age").doesNotExist())
+            .andDo(print());
+
+        assertThat(userRepository.existsByUsername(userRequest.getUsername())).isFalse();
+    }
+
+    @Test
+    @DisplayName("회원가입 시 기존에 등록된 username으로 회원가입 시도 시 회원가입이 되지 않아야한다.")
+    void testCantRegisterIfUsernameAlreadyExists() throws Exception {
+        UserRequest memberRequest = UserRequest.builder()
+            .username("gugudan123")
+            .password("gugudan123")
+            .age(30)
+            .build();
+
+        mockMvc.perform(post(USER_REQUEST_URI)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(memberRequest))
+        )
+            .andExpect(status().isOk());
+        assertThat(userRepository.existsByUsername(memberRequest.getUsername())).isTrue();
+
+        UserRequest newUserRequest = UserRequest.builder()
+            .username(memberRequest.getUsername())
+            .password("wow123")
+            .age(20)
+            .build();
+
+        mockMvc.perform(post(USER_REQUEST_URI)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(newUserRequest))
+        )
+            .andExpect(status().isConflict())
+            .andExpect(jsonPath("$.code")
+                .value(ResponseCode.USERNAME_ALREADY_EXISTS.getCode())
+            )
+            .andExpect(jsonPath("$.message")
+                .value(ResponseCode.USERNAME_ALREADY_EXISTS.getMessage())
+            )
+            .andDo(print());
+
+        Optional<User> optUser = userRepository.findByUsername(newUserRequest.getUsername());
+        assertThat(optUser.isPresent()).isTrue();
+        User member = optUser.get();
+        assertThat(member.getAge()).isNotEqualTo(newUserRequest.getAge());
+    }
+}
