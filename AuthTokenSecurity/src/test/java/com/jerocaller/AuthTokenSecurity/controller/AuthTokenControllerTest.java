@@ -10,11 +10,13 @@ import com.jerocaller.AuthTokenSecurity.data.entity.AuthToken;
 import com.jerocaller.AuthTokenSecurity.data.entity.User;
 import com.jerocaller.AuthTokenSecurity.data.repository.AuthTokenRepository;
 import com.jerocaller.AuthTokenSecurity.data.repository.UserRepository;
+import com.jerocaller.AuthTokenSecurity.jwt.CustomJwtAuthenticationProvider;
 import com.jerocaller.libs.spoonsuits.web.jwt.JwtAuthenticationProvider;
 import com.jerocaller.libs.spoonsuits.web.jwt.JwtProperties;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.Cookie;
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -38,6 +40,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@Slf4j
 class AuthTokenControllerTest {
 
     @Autowired
@@ -91,6 +94,13 @@ class AuthTokenControllerTest {
             .isEqualTo("ACCESS-TOKEN-TEST");
         assertThat(jwtProperties.getToken().getRefresh().getCookieName())
             .isEqualTo("REFRESH-TOKEN-TEST");
+        log.info("issuer: {}로 테스트 실행.", jwtProperties.getIssuer());
+
+        String jwtAuthProviderName = jwtAuthenticationProvider.getClass().getSimpleName();
+        assertThat(jwtAuthProviderName).isEqualTo(
+            CustomJwtAuthenticationProvider.class.getSimpleName()
+        );
+        log.info("테스트에 사용할 JWT auth provider name: {}", jwtAuthProviderName);
     }
 
     @Test
