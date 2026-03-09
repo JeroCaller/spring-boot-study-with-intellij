@@ -1,13 +1,13 @@
 package com.jerocaller.AuthTokenSecurity.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jayway.jsonpath.JsonPath;
 import com.jerocaller.AuthTokenSecurity.data.dto.AuthTokensDTO;
 import com.jerocaller.AuthTokenSecurity.data.dto.request.AuthRequest;
 import com.jerocaller.AuthTokenSecurity.data.dto.request.UserRequest;
 import com.jerocaller.AuthTokenSecurity.data.dto.response.ResponseCode;
 import com.jerocaller.AuthTokenSecurity.data.entity.User;
 import com.jerocaller.AuthTokenSecurity.data.repository.UserRepository;
+import com.jerocaller.AuthTokenSecurity.util.TestUtil;
 import com.jerocaller.libs.spoonsuits.web.jwt.JwtAuthenticationProvider;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.DisplayName;
@@ -147,6 +147,7 @@ class UserControllerTest {
 
         Optional<User> optUser = userRepository.findByUsername(newUserRequest.getUsername());
         assertThat(optUser.isPresent()).isTrue();
+
         User member = optUser.get();
         assertThat(member.getAge()).isNotEqualTo(newUserRequest.getAge());
     }
@@ -183,16 +184,7 @@ class UserControllerTest {
             .andExpect(jsonPath("$.data.refreshToken").exists())
             .andDo(print())
             .andReturn();
-        AuthTokensDTO responseAuthTokens = AuthTokensDTO.builder()
-            .accessToken(JsonPath.read(
-                loginResult.getResponse().getContentAsString(),
-                "$.data.accessToken"
-            ))
-            .refreshToken(JsonPath.read(
-                loginResult.getResponse().getContentAsString(),
-                "$.data.refreshToken"
-            ))
-            .build();
+        AuthTokensDTO responseAuthTokens = TestUtil.extractJwtTokens(loginResult);
 
         // 보호된 자원 요청
         mockMvc.perform(get(USER_REQUEST_URI + "/{username}", userRequest.getUsername())

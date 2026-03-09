@@ -1,7 +1,7 @@
 package com.jerocaller.AuthTokenSecurity.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jayway.jsonpath.JsonPath;
+import com.jerocaller.AuthTokenSecurity.config.LoginBeanRegister;
 import com.jerocaller.AuthTokenSecurity.data.dto.AuthTokensDTO;
 import com.jerocaller.AuthTokenSecurity.data.dto.request.AuthRequest;
 import com.jerocaller.AuthTokenSecurity.data.dto.request.UserRequest;
@@ -11,6 +11,8 @@ import com.jerocaller.AuthTokenSecurity.data.entity.User;
 import com.jerocaller.AuthTokenSecurity.data.repository.AuthTokenRepository;
 import com.jerocaller.AuthTokenSecurity.data.repository.UserRepository;
 import com.jerocaller.AuthTokenSecurity.jwt.CustomJwtAuthenticationProvider;
+import com.jerocaller.AuthTokenSecurity.mockbean.LoginHelper;
+import com.jerocaller.AuthTokenSecurity.util.TestUtil;
 import com.jerocaller.libs.spoonsuits.web.jwt.JwtAuthenticationProvider;
 import com.jerocaller.libs.spoonsuits.web.jwt.JwtProperties;
 import io.jsonwebtoken.Claims;
@@ -23,6 +25,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -41,6 +44,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Slf4j
+@Import({LoginBeanRegister.class})
 class AuthTokenControllerTest {
 
     @Autowired
@@ -61,7 +65,9 @@ class AuthTokenControllerTest {
     @Autowired
     private JwtProperties jwtProperties;
 
-    private final String LOGIN_URI = "/api/auth/login";
+    @Autowired
+    private LoginHelper loginHelper;
+
     private final UserRequest userRequest = UserRequest.builder()
         .username("gugudan123")
         .password("gugudan123")
@@ -111,7 +117,7 @@ class AuthTokenControllerTest {
             .password(userRequest.getPassword())
             .build();
 
-        final MvcResult mvcResult = mockMvc.perform(post(LOGIN_URI)
+        final MvcResult mvcResult = mockMvc.perform(post(LoginHelper.LOGIN_URL)
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(authRequest))
         )
@@ -129,16 +135,7 @@ class AuthTokenControllerTest {
         User user = userRepository.findByUsername(userRequest.getUsername()).get();
         assertThat(user.getLastLoginAt()).isNotNull();
 
-        AuthTokensDTO responseTokens = AuthTokensDTO.builder()
-            .accessToken(JsonPath.read(
-                mvcResult.getResponse().getContentAsString(),
-                "$.data.accessToken")
-            )
-            .refreshToken(JsonPath.read(
-                mvcResult.getResponse().getContentAsString(),
-                "$.data.refreshToken")
-            )
-            .build();
+        AuthTokensDTO responseTokens = TestUtil.extractJwtTokens(mvcResult);
         assertThat(responseTokens.getAccessToken()).isNotNull();
         assertThat(responseTokens.getRefreshToken()).isNotNull();
         jwtTokenTest(responseTokens.getAccessToken());
@@ -147,6 +144,7 @@ class AuthTokenControllerTest {
         Optional<AuthToken> optionalAuthToken = authTokenRepository
             .findByRefreshToken(responseTokens.getRefreshToken());
         assertThat(optionalAuthToken.isPresent()).isTrue();
+
         AuthToken authToken = optionalAuthToken.get();
         assertThat(authToken.isValid()).isTrue();
     }
@@ -159,21 +157,17 @@ class AuthTokenControllerTest {
             .password(userRequest.getPassword())
             .build();
 
-        final MvcResult mvcResult = mockMvc.perform(post(LOGIN_URI)
+        final MvcResult mvcResult = mockMvc.perform(post(LoginHelper.LOGIN_URL)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(authRequest))
             )
             .andExpect(status().isOk())
             .andReturn();
 
-        String responseRefreshToken = JsonPath.read(
-            mvcResult.getResponse().getContentAsString(),
-            "$.data.refreshToken"
-        );
-
+        AuthTokensDTO responseRefreshTokenDto = TestUtil.extractJwtTokens(mvcResult);
         final String refreshTokenCookieName = jwtProperties.getToken().getRefresh().getCookieName();
         mockMvc.perform(post("/api/auth/logout")
-            .cookie(new Cookie(refreshTokenCookieName, responseRefreshToken))
+            .cookie(new Cookie(refreshTokenCookieName, responseRefreshTokenDto.getRefreshToken()))
         )
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.data").doesNotExist())
@@ -181,8 +175,9 @@ class AuthTokenControllerTest {
             .andReturn();
 
         Optional<AuthToken> optionalAuthToken = authTokenRepository
-            .findByPreviousRefreshToken(responseRefreshToken);
+            .findByPreviousRefreshToken(responseRefreshTokenDto.getRefreshToken());
         assertThat(optionalAuthToken.isPresent()).isTrue();
+
         AuthToken authTokenEntity = optionalAuthToken.get();
         assertThat(authTokenEntity.isValid()).isFalse();
         assertThat(authTokenEntity.getRefreshToken()).isNull();
