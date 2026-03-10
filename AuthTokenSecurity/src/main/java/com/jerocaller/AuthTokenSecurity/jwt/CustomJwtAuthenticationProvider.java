@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
 /**
- * <p>TODO - {@code @RequiredArgsConstructor} 적용 불가 문제</p>
+ * <p>{@code @RequiredArgsConstructor} 적용 불가 문제</p>
  * <p>
  *     {@code @RequiredArgsConstructor}를 이 클래스에 적용할 수 없음. 메시지에 따르면,
  *     <code>Lombok은 기본 클래스에 디폴트 생성자가 필요합니다</code>라고 함. 즉, 상위 클래스에서

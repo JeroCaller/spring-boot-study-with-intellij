@@ -41,7 +41,6 @@ public class AuthTokenController {
         return RestResponse.success(null);
     }
 
-    // TODO - 테스트 필요
     /**
      * <p>액세스 토큰 만료 시 리프레시 토큰과 함께 서버에 요청하여 인증 토큰을 재발급한다.</p>
      * <p>재발급 조건 - 사용자가 별도로 재로그인을 하지 않아도 됨.</p>
