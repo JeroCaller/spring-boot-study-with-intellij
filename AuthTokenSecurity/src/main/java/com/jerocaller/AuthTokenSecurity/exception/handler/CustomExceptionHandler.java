@@ -17,9 +17,9 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class CustomExceptionHandler {
 
     @ExceptionHandler(value = Exception.class)
-    public ResponseEntity<RestResponse.DetailedRestResponse<Object>> handleUnexpectedExcetpion(Exception e) {
+    public ResponseEntity<RestResponse.DetailedRestResponse<Object>> handleUnexpectedException(Exception e) {
         log.error("예상치 못한 예외 발생.");
-        log.error(e.getMessage());
+        log.error("{}: {}", e.getClass().getName(), e.getMessage());
 
         for (StackTraceElement stackTraceElement : e.getStackTrace()) {
             log.error(stackTraceElement.toString());
@@ -48,7 +48,7 @@ public class CustomExceptionHandler {
     ) {
         return RestResponse.error(
             ValidationUtils.getValidationFailedMessage(e),
-            ResponseCode.INVALID_USER_FORMAT
+            ResponseCode.INVALID_REQUEST_FORMAT
         );
     }
 

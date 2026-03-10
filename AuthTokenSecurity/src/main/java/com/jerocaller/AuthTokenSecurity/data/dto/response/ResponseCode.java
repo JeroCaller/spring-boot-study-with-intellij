@@ -9,10 +9,10 @@ import org.springframework.http.HttpStatus;
 public enum ResponseCode {
     OK(HttpStatus.OK, "OK", "응답 성공"),
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "USER_NOT_FOUND", "존재하지 않는 유저입니다."),
-    INVALID_USER_FORMAT(
+    INVALID_REQUEST_FORMAT(
         HttpStatus.BAD_REQUEST,
-        "INVALID_USER_FORMAT",
-        "유효하지 않은 유저 정보 형식입니다."
+        "INVALID_REQUEST_FORMAT",
+        "유효하지 않는 입력 형식입니다."
     ),
     USERNAME_ALREADY_EXISTS(
         HttpStatus.CONFLICT,
@@ -54,10 +54,20 @@ public enum ResponseCode {
         "JWT_EXPIRED",
         "인증 토큰이 만료되었습니다. 재인증을 위해 새 토큰으로 갱신해야합니다."
     ),
+    REFRESH_TOKEN_EXPIRED(
+        HttpStatus.UNAUTHORIZED,
+        "REFRESH_TOKEN_EXPIRED",
+        "refresh token이 만료되었습니다. 다시 로그인 해주세요."
+    ),
     JWT_ILLEGAL_ARGUMENT_INSERTED(
         HttpStatus.BAD_REQUEST,
         "JWT_ILLEGAL_ARGUMENT_INSERTED",
         "null 또는 빈 JWT 토큰이 입력되었습니다. 유효한 형식의 JWT 토큰을 입력하세요."
+    ),
+    JWT_UNEXPECTED_FORMAT(
+        HttpStatus.BAD_REQUEST,
+        "JWT_UNEXPECTED_FORMAT",
+        "지원되지 않는 형식의 JWT 토큰입니다."
     )
     ;
 

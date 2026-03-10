@@ -8,6 +8,7 @@ import com.jerocaller.AuthTokenSecurity.data.dto.request.AuthRequest;
 import com.jerocaller.AuthTokenSecurity.data.dto.response.RestResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -66,7 +67,7 @@ public class AuthTokenController {
      */
     @PostMapping("/token/reissue")
     public ResponseEntity<RestResponse.DetailedRestResponse<AuthTokensDTO>> reissueToken(
-        @RequestBody AuthTokensDTO requestedAuthTokensDTO
+        @Valid @RequestBody AuthTokensDTO requestedAuthTokensDTO
     ) {
         refreshTokenService.detectTokenReuse(requestedAuthTokensDTO);
         AuthTokensDTO authTokensToResponse = authTokenService

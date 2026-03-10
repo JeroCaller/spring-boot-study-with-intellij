@@ -82,10 +82,6 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     @Override
     @Transactional
     public void detectTokenReuse(AuthTokensDTO oldAuthTokensDto) {
-        if (!jwtAuthenticationProvider.validateToken(oldAuthTokensDto.getRefreshToken())) {
-            return;
-        }
-
         if (authTokenRepository.existsByRefreshToken(oldAuthTokensDto.getRefreshToken())) {
             return;
         }
