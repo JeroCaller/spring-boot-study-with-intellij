@@ -82,11 +82,16 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     @Override
     @Transactional
     public void detectTokenReuse(AuthTokensDTO oldAuthTokensDto) {
-        if (authTokenRepository.existsByRefreshToken(oldAuthTokensDto.getRefreshToken())) {
-            return;
+        Optional<AuthToken> optAuthToken = authTokenRepository
+            .findByRefreshToken(oldAuthTokensDto.getRefreshToken());
+
+        // 비로그인 상태에서의 토큰 재발급 요청 거부
+        if (optAuthToken.isPresent() && !optAuthToken.get().isValid()) {
+            warnTokenReuseToServer(optAuthToken.get());
+            throw new ReLoginRequiredException();
         }
 
-        Optional<AuthToken> optAuthToken = authTokenRepository
+        optAuthToken = authTokenRepository
             .findByPreviousRefreshToken(oldAuthTokensDto.getRefreshToken());
 
         if (optAuthToken.isEmpty()) {

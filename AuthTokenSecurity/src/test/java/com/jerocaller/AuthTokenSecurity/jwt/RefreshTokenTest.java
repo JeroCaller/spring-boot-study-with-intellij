@@ -1,6 +1,7 @@
 package com.jerocaller.AuthTokenSecurity.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jayway.jsonpath.JsonPath;
 import com.jerocaller.AuthTokenSecurity.config.LoginBeanRegister;
 import com.jerocaller.AuthTokenSecurity.data.dto.AuthTokensDTO;
 import com.jerocaller.AuthTokenSecurity.data.dto.request.UserRequest;
@@ -29,6 +30,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.time.Duration;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -365,5 +367,106 @@ public class RefreshTokenTest {
         assertThat(userAuthTokenEntity.getUser()).isNotNull();
         assertThat(userAuthTokenEntity.getUser().getUsername())
             .isEqualTo(userRequest.getUsername());
+    }
+
+    @Test
+    @DisplayName("""
+        인증된 사용자가 로그인한 상태에서 해커가 사용자의 refresh token 탈취한 후,
+        사용자가 새 refresh token을 발급받은 상태에서 해커가 refresh token으로
+        새 JWT 토큰 발급 요청 시 거절되며, 재로그인 응답을 내보낸다. 두 사용자 모두
+        이후 재로그인해야한다.
+        참고 - 반대로 해커가 먼저 새 JWT 토큰 재발급한 후 사용자가 토큰 재발급 요청을 해도
+        똑같은 결과를 낸다.
+    """)
+    void shouldDetectWhenHackerTriesToReissueRefreshToken() throws Exception {
+        // 첫 로그인 및 관련 검증
+        AuthTokensDTO prevAuthTokens = loginHelper.login(userRequest);
+        assertThat(jwtAuthenticationProvider.validateToken(prevAuthTokens.getAccessToken()))
+            .isTrue();
+        assertThat(jwtAuthenticationProvider.validateToken(prevAuthTokens.getRefreshToken()))
+            .isTrue();
+        assertThat(userRepository.existsByUsername(userRequest.getUsername())).isTrue();
+
+        Optional<AuthToken> optionalAuthToken = authTokenRepository
+            .findByRefreshToken(prevAuthTokens.getRefreshToken());
+        assertThat(optionalAuthToken.isPresent()).isTrue();
+
+        AuthToken authTokensEntity = optionalAuthToken.get();
+        assertThat(authTokensEntity.getPreviousRefreshToken()).isNull();
+        assertThat(authTokensEntity.isValid()).isTrue();
+
+        // 이전 refresh token과 이후 refresh token 값이 다름을 보장하기 위함.
+        TestUtil.delay(Duration.ofMillis(1000));
+
+        // 인증된 사용자가 JWT 토큰 재발급 요청한다고 가정.
+        // 반대로 해커가 먼저 재발급한다고 가정할 수도 있음.
+        final MvcResult reissueResult = mockMvc.perform(post(REISSUE_URI)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(prevAuthTokens))
+        )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data").exists())
+            .andExpect(jsonPath("$.data.accessToken").exists())
+            .andExpect(jsonPath("$.data.refreshToken").exists())
+            .andDo(print())
+            .andReturn();
+        AuthTokensDTO reissuedAuthTokens = AuthTokensDTO.builder()
+            .accessToken(JsonPath.read(
+                reissueResult.getResponse().getContentAsString(),
+                "$.data.accessToken"
+            ))
+            .refreshToken(JsonPath.read(
+                reissueResult.getResponse().getContentAsString(),
+                "$.data.refreshToken"
+            ))
+            .build();
+
+        // DB에서 새 refresh token과 이전 refresh token이 저장되어야 한다.
+        optionalAuthToken = authTokenRepository
+            .findByRefreshToken(reissuedAuthTokens.getRefreshToken());
+        assertThat(optionalAuthToken.isPresent()).isTrue();
+
+        authTokensEntity = optionalAuthToken.get();
+        assertThat(authTokensEntity.getPreviousRefreshToken())
+            .isEqualTo(prevAuthTokens.getRefreshToken());
+        assertThat(authTokensEntity.getRefreshToken())
+            .isNotEqualTo(authTokensEntity.getPreviousRefreshToken());
+        assertThat(authTokensEntity.getRefreshToken())
+            .isNotEqualTo(prevAuthTokens.getRefreshToken());
+        assertThat(authTokensEntity.isValid()).isTrue();
+
+        // 해커가 인증된 사용자로부터 탈취한 만료된 refresh token을 통해
+        // 새 access token 발급 시도한다고 가정.
+        ResponseCode expectedCode = ResponseCode.RELOGIN_REQUIRED;
+        mockMvc.perform(post(REISSUE_URI)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(prevAuthTokens))
+        )
+            .andExpect(status().isUnauthorized())
+            .andExpect(jsonPath("$.message").value(expectedCode.getMessage()))
+            .andExpect(jsonPath("$.code").value(expectedCode.getCode()))
+            .andExpect(jsonPath("$.data").doesNotExist())
+            .andDo(print());
+
+        // DB 상태 확인
+        optionalAuthToken = authTokenRepository
+            .findByRefreshToken(reissuedAuthTokens.getRefreshToken());
+        assertThat(optionalAuthToken.isPresent()).isTrue();
+
+        authTokensEntity = optionalAuthToken.get();
+        assertThat(authTokensEntity.getPreviousRefreshToken())
+            .isEqualTo(prevAuthTokens.getRefreshToken());
+        assertThat(authTokensEntity.isValid()).isFalse();
+
+        // 이 후 인증된 사용자가 토큰 재발급을 요청하더라도 똑같이 재로그인 응답을 받는다.
+        mockMvc.perform(post(REISSUE_URI)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(reissuedAuthTokens))
+            )
+            .andExpect(status().isUnauthorized())
+            .andExpect(jsonPath("$.message").value(expectedCode.getMessage()))
+            .andExpect(jsonPath("$.code").value(expectedCode.getCode()))
+            .andExpect(jsonPath("$.data").doesNotExist())
+            .andDo(print());
     }
 }
