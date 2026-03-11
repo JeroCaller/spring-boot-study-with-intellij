@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: AuthTokenSecurity
+
+  profiles:
+    include: secret
+    active: local
+
+  datasource:
+    driver-class-name: org.mariadb.jdbc.Driver
+    url: jdbc:mariadb://127.0.0.1:3308/study_auth_token
+
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MariaDBDialect
