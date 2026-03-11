@@ -1,7 +1,6 @@
 package com.jerocaller.AuthTokenSecurity.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jerocaller.AuthTokenSecurity.config.LoginBeanRegister;
 import com.jerocaller.AuthTokenSecurity.data.dto.AuthTokensDTO;
 import com.jerocaller.AuthTokenSecurity.data.dto.request.AuthRequest;
 import com.jerocaller.AuthTokenSecurity.data.dto.request.UserRequest;
@@ -11,7 +10,7 @@ import com.jerocaller.AuthTokenSecurity.data.entity.User;
 import com.jerocaller.AuthTokenSecurity.data.repository.AuthTokenRepository;
 import com.jerocaller.AuthTokenSecurity.data.repository.UserRepository;
 import com.jerocaller.AuthTokenSecurity.jwt.CustomJwtAuthenticationProvider;
-import com.jerocaller.AuthTokenSecurity.mockbean.LoginHelper;
+import com.jerocaller.AuthTokenSecurity.util.LoginHelper;
 import com.jerocaller.AuthTokenSecurity.util.TestUtil;
 import com.jerocaller.libs.spoonsuits.web.jwt.JwtAuthenticationProvider;
 import com.jerocaller.libs.spoonsuits.web.jwt.JwtProperties;
@@ -25,7 +24,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -44,7 +42,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Slf4j
-@Import({LoginBeanRegister.class})
 class AuthTokenControllerTest {
 
     @Autowired
@@ -64,9 +61,6 @@ class AuthTokenControllerTest {
 
     @Autowired
     private JwtProperties jwtProperties;
-
-    @Autowired
-    private LoginHelper loginHelper;
 
     private final UserRequest userRequest = UserRequest.builder()
         .username("gugudan123")

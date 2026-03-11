@@ -1,7 +1,6 @@
 package com.jerocaller.AuthTokenSecurity.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jayway.jsonpath.JsonPath;
 import com.jerocaller.AuthTokenSecurity.config.LoginBeanRegister;
 import com.jerocaller.AuthTokenSecurity.data.dto.AuthTokensDTO;
 import com.jerocaller.AuthTokenSecurity.data.dto.request.UserRequest;
@@ -10,7 +9,7 @@ import com.jerocaller.AuthTokenSecurity.data.entity.AuthToken;
 import com.jerocaller.AuthTokenSecurity.data.entity.User;
 import com.jerocaller.AuthTokenSecurity.data.repository.AuthTokenRepository;
 import com.jerocaller.AuthTokenSecurity.data.repository.UserRepository;
-import com.jerocaller.AuthTokenSecurity.mockbean.LoginHelper;
+import com.jerocaller.AuthTokenSecurity.util.LoginHelper;
 import com.jerocaller.AuthTokenSecurity.util.TestUtil;
 import com.jerocaller.libs.spoonsuits.web.jwt.JwtAuthenticationProvider;
 import com.jerocaller.libs.spoonsuits.web.jwt.JwtProperties;
@@ -120,6 +119,7 @@ public class RefreshTokenTest {
         assertThat(jwtAuthenticationProvider.validateToken(prevAuthTokens.getRefreshToken()))
             .isTrue();
 
+        // 로그인 후 새로 발급된 refresh token이 DB 상에 저장되었는지 검증.
         Optional<AuthToken> optionalPrevAuthToken = authTokenRepository
             .findByRefreshToken(prevAuthTokens.getRefreshToken());
         assertThat(optionalPrevAuthToken.isPresent()).isTrue();
@@ -157,6 +157,7 @@ public class RefreshTokenTest {
         assertThat(prevAuthTokens.getRefreshToken())
             .isNotEqualTo(reissuedAuthTokens.getRefreshToken());
 
+        // 토큰 재발급으로 인한 DB 상태 확인.
         Optional<AuthToken> optionalReissuedAuthToken = authTokenRepository
             .findByRefreshToken(reissuedAuthTokens.getRefreshToken());
         assertThat(optionalReissuedAuthToken.isPresent()).isTrue();
@@ -181,6 +182,7 @@ public class RefreshTokenTest {
         assertThat(jwtAuthenticationProvider.validateToken(prevAuthTokens.getRefreshToken()))
             .isTrue();
 
+        // 로그인 후 새로 발급된 refresh token이 DB 상에 저장되었는지 검증.
         Optional<AuthToken> optionalPrevAuthToken = authTokenRepository
             .findByRefreshToken(prevAuthTokens.getRefreshToken());
         assertThat(optionalPrevAuthToken.isPresent()).isTrue();
@@ -233,6 +235,7 @@ public class RefreshTokenTest {
         assertThat(jwtAuthenticationProvider.validateToken(prevAuthTokens.getRefreshToken()))
             .isTrue();
 
+        // 로그인 후 새로 발급된 refresh token이 DB 상에 저장되었는지 검증.
         Optional<AuthToken> optionalPrevAuthToken = authTokenRepository
             .findByRefreshToken(prevAuthTokens.getRefreshToken());
         assertThat(optionalPrevAuthToken.isPresent()).isTrue();
@@ -387,6 +390,7 @@ public class RefreshTokenTest {
             .isTrue();
         assertThat(userRepository.existsByUsername(userRequest.getUsername())).isTrue();
 
+        // 로그인 후 새로 발급된 refresh token이 DB 상에 저장되었는지 검증.
         Optional<AuthToken> optionalAuthToken = authTokenRepository
             .findByRefreshToken(prevAuthTokens.getRefreshToken());
         assertThat(optionalAuthToken.isPresent()).isTrue();
@@ -410,16 +414,7 @@ public class RefreshTokenTest {
             .andExpect(jsonPath("$.data.refreshToken").exists())
             .andDo(print())
             .andReturn();
-        AuthTokensDTO reissuedAuthTokens = AuthTokensDTO.builder()
-            .accessToken(JsonPath.read(
-                reissueResult.getResponse().getContentAsString(),
-                "$.data.accessToken"
-            ))
-            .refreshToken(JsonPath.read(
-                reissueResult.getResponse().getContentAsString(),
-                "$.data.refreshToken"
-            ))
-            .build();
+        AuthTokensDTO reissuedAuthTokens = TestUtil.extractJwtTokens(reissueResult);
 
         // DB에서 새 refresh token과 이전 refresh token이 저장되어야 한다.
         optionalAuthToken = authTokenRepository

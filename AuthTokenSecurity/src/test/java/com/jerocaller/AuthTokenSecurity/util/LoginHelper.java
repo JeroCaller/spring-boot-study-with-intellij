@@ -1,4 +1,4 @@
-package com.jerocaller.AuthTokenSecurity.mockbean;
+package com.jerocaller.AuthTokenSecurity.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;

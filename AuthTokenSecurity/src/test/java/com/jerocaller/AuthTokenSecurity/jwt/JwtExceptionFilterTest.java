@@ -5,7 +5,7 @@ import com.jerocaller.AuthTokenSecurity.config.LoginBeanRegister;
 import com.jerocaller.AuthTokenSecurity.data.dto.AuthTokensDTO;
 import com.jerocaller.AuthTokenSecurity.data.dto.request.UserRequest;
 import com.jerocaller.AuthTokenSecurity.data.dto.response.ResponseCode;
-import com.jerocaller.AuthTokenSecurity.mockbean.LoginHelper;
+import com.jerocaller.AuthTokenSecurity.util.LoginHelper;
 import com.jerocaller.AuthTokenSecurity.util.TestUtil;
 import com.jerocaller.libs.spoonsuits.web.jwt.JwtAuthenticationProvider;
 import com.jerocaller.libs.spoonsuits.web.jwt.JwtProperties;

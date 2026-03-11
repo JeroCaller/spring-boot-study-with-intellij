@@ -1,7 +1,7 @@
 package com.jerocaller.AuthTokenSecurity.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jerocaller.AuthTokenSecurity.mockbean.LoginHelper;
+import com.jerocaller.AuthTokenSecurity.util.LoginHelper;
 import com.jerocaller.libs.spoonsuits.web.jwt.JwtAuthenticationProvider;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;

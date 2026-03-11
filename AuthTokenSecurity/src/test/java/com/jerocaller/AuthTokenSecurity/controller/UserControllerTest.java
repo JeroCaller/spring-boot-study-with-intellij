@@ -119,6 +119,7 @@ class UserControllerTest {
             .age(30)
             .build();
 
+        // 회원 가입
         mockMvc.perform(post(USER_REQUEST_URI)
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(memberRequest))
@@ -126,22 +127,24 @@ class UserControllerTest {
             .andExpect(status().isOk());
         assertThat(userRepository.existsByUsername(memberRequest.getUsername())).isTrue();
 
+        // 기존 회원의 username과 겹치는 새 회원가입 시도.
         UserRequest newUserRequest = UserRequest.builder()
             .username(memberRequest.getUsername())
             .password("wow123")
             .age(20)
             .build();
 
+        ResponseCode expectedCode = ResponseCode.USERNAME_ALREADY_EXISTS;
         mockMvc.perform(post(USER_REQUEST_URI)
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(newUserRequest))
         )
             .andExpect(status().isConflict())
             .andExpect(jsonPath("$.code")
-                .value(ResponseCode.USERNAME_ALREADY_EXISTS.getCode())
+                .value(expectedCode.getCode())
             )
             .andExpect(jsonPath("$.message")
-                .value(ResponseCode.USERNAME_ALREADY_EXISTS.getMessage())
+                .value(expectedCode.getMessage())
             )
             .andDo(print());
 
@@ -153,7 +156,7 @@ class UserControllerTest {
     }
 
     @Test
-    @DisplayName("로그인 후 보호된 자원에 접근가능해야한다.")
+    @DisplayName("로그인 후 보호된 자원에 접근 가능해야한다.")
     void shouldBeAbleToAccessToProtectedResourceAfterLogin() throws Exception {
         UserRequest userRequest = UserRequest.builder()
             .username("gugudan123")
