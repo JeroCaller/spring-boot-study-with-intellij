@@ -47,6 +47,8 @@ public class SwaggerConfig {
             .type(SecurityScheme.Type.HTTP)
             .scheme("bearer")
             .bearerFormat("JWT");
+
+        // Swagger UI에서 쿠키 기능을 사용하기 위한 설정.
         SecurityScheme refreshTokenCookieScheme = new SecurityScheme()
             .name(refreshTokenCookieName)
             .type(SecurityScheme.Type.APIKEY)

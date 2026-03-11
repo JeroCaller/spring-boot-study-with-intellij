@@ -68,6 +68,9 @@ public class UserServiceImpl implements UserService {
         UserResponse userResponse = UserResponse.toDto(currentUser);
         AuthTokensDTO newAuthTokensDto = null;
 
+        // username을 기반으로 인증 토큰이 발급되는 방식이고,
+        // 서버에서 인증 토큰을 통해 사용자를 식별하는 방법이 username을 이용한 방법이므로
+        // username 변경 시 새 인증 토큰으로 변경해야함.
         if (willUsernameBeChanged) {
             newAuthTokensDto = authTokenService.generateAuthTokens(currentUser);
         }
