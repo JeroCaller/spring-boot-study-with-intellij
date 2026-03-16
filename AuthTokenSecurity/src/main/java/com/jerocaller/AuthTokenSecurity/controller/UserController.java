@@ -6,6 +6,7 @@ import com.jerocaller.AuthTokenSecurity.data.dto.request.UserRequest;
 import com.jerocaller.AuthTokenSecurity.data.dto.response.RestResponse;
 import com.jerocaller.AuthTokenSecurity.data.dto.response.UserResponse;
 import com.jerocaller.AuthTokenSecurity.data.dto.response.UserUpdateResponse;
+import com.jerocaller.AuthTokenSecurity.data.entity.AuthToken;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -59,5 +60,10 @@ public class UserController {
     public ResponseEntity<RestResponse.DetailedRestResponse<UserResponse>> unregister() {
         UserResponse userResponse = userService.unregister();
         return RestResponse.success(userResponse, "성공적으로 회원 탈퇴하였습니다.");
+    }
+
+    private void some() {
+        // pmd rule 적용 테스트.
+        AuthToken authToken = AuthToken.builder().build();
     }
 }
