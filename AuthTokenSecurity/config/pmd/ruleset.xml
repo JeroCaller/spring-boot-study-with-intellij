@@ -1,0 +1,84 @@
+<?xml version="1.0"?>
+<ruleset name="Custom Ruleset for auth token security study project"
+         xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0
+         http://pmd.sourceforge.net/ruleset_2_0_0.xsd">
+
+    <description>커스텀 규칙 모음</description>
+
+    <rule ref="category/java/design.xml/CyclomaticComplexity">
+        <properties>
+            <property name="methodReportLevel" value="7" />
+        </properties>
+    </rule>
+
+    <rule ref="category/java/codestyle.xml/LongVariable">
+        <properties>
+            <property name="minimum" value="10" />
+        </properties>
+        <priority>4</priority>
+    </rule>
+
+    <rule ref="category/java/bestpractices.xml/SystemPrintln">
+        <priority>1</priority>
+    </rule>
+
+    <!-- 처음부터 직접 만든 룰 추가. -->
+    <rule name="DontUseEntityInController"
+          message="컨트롤러 레이어에서 엔티티 객체를 사용하지 말 것."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+          language="java"
+    >
+        <description>
+            Don't use or create entity instances directly in controller layers.
+        </description>
+        <priority>2</priority>
+        <example>
+            <![CDATA[
+                package com.jerocaller.controller;
+
+                import com.jerocaller.entity.User; // Entity를 직접 임포트함
+                import org.springframework.web.bind.annotation.*;
+
+                @RestController // 1. 컨트롤러임을 확인
+                public class UserController {
+
+                    @GetMapping("/{id}")
+                    public User getUser(@PathVariable Long id) { // 위반: 반환 타입이 Entity(User)
+                        return null;
+                    }
+
+                    @PostMapping("/save")
+                    public void saveUser(@RequestBody User user) { // 위반: 파라미터 타입이 Entity(User)
+                        User otherUser = new User("hi");  // 위반: 엔티티 객체 사용.
+                        // logic
+                   }
+                }
+            ]]>
+        </example>
+        <properties>
+            <property name="xpath">
+                <value>
+<![CDATA[
+    //ClassType[
+        @SimpleName = //ImportDeclaration[contains(@ImportedName, '.entity.')]/substring-after(@ImportedName, '.entity.')
+        and
+        ancestor::ClassDeclaration/ModifierList/Annotation[ends-with(@SimpleName, 'Controller')]
+    ]
+]]>
+                </value>
+            </property>
+        </properties>
+    </rule>
+    <!--
+        XPath Query 문법 설명)
+        - 여러 조건들이 and 조건으로 묶여 동시에 만족해야만 룰 위배로 판정하고자 할 경우, 대괄호 ([]) 안에
+        여러 조건들을 `and` 키워드와 함께 나열한다.
+        - ancestor는 소위 Axis 중 하나로, 선택된 현재 노드를 기준으로 해당 노드를 감싸고 있는 조상 노드들을
+        방문하여 선택할 때 사용된다. 위 규칙에서는 `ancestor::ClassDeclaration...` 식으로 작성되었는데,
+        이 쿼리문의 경우, 현재 선택된 ClassType(객체 타입) 노드를 감싸는 클래스 선언부(ClassDeclaration)로
+        올라간 다음, 해당 클래스 선언부의 어노테이션의 이름이 `Controller`로 끝나는지 여부를 boolean 값으로
+        반환하겠다는 뜻이다.
+    -->
+</ruleset>
