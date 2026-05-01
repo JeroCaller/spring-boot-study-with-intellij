@@ -23,14 +23,14 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public void register(BookRequest bookRequest) {
-        bookRepository.save(Book.toEntity(bookRequest));
+    public BookResponse register(BookRequest bookRequest) {
+        return BookResponse.toDto(bookRepository.save(Book.toEntity(bookRequest)));
     }
 
     @Override
     @Transactional
-    public BookResponse updateBook(BookRequest bookRequest) {
-        Optional<Book> targetBookOpt = bookRepository.findByName(bookRequest.getName());
+    public BookResponse updateBook(int id, BookRequest bookRequest) {
+        Optional<Book> targetBookOpt = bookRepository.findById(id);
 
         if (targetBookOpt.isEmpty()) {
             return null;
