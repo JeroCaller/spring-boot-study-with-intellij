@@ -1,12 +1,15 @@
 package com.jerocaller.AuthTokenSecurity.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jerocaller.AuthTokenSecurity.config.LoginBeanRegister;
 import com.jerocaller.AuthTokenSecurity.data.dto.AuthTokensDTO;
 import com.jerocaller.AuthTokenSecurity.data.dto.request.AuthRequest;
+import com.jerocaller.AuthTokenSecurity.data.dto.request.UserInfoPatchRequest;
 import com.jerocaller.AuthTokenSecurity.data.dto.request.UserRequest;
 import com.jerocaller.AuthTokenSecurity.data.dto.response.ResponseCode;
 import com.jerocaller.AuthTokenSecurity.data.entity.User;
 import com.jerocaller.AuthTokenSecurity.data.repository.UserRepository;
+import com.jerocaller.AuthTokenSecurity.util.LoginHelper;
 import com.jerocaller.AuthTokenSecurity.util.TestUtil;
 import com.jerocaller.libs.spoonsuits.web.jwt.JwtAuthenticationProvider;
 import jakarta.transaction.Transactional;
@@ -15,7 +18,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -24,6 +29,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -43,6 +49,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional  // 테스트 케이스 실행 때마다 테스트 DB가 롤백된다.
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@Import({LoginBeanRegister.class})
 class UserControllerTest {
 
     @Autowired
@@ -53,6 +60,15 @@ class UserControllerTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private LoginHelper loginHelper;
+
+    @Autowired
+    private JwtAuthenticationProvider jwtAuthenticationProvider;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     private final String USER_REQUEST_URI = "/api/users";
 
@@ -232,5 +248,56 @@ class UserControllerTest {
             )
             .andExpect(jsonPath("$.data").doesNotExist())
             .andDo(print());
+    }
+
+    @Test
+    @DisplayName("유저 정보 업데이트 요청 후 유저 정보가 영구적으로 변경되어야 한다.")
+    void shouldUpdateUserInfo() throws Exception {
+        UserRequest memberRequest = UserRequest.builder()
+            .username("gugudan123")
+            .password("gugudan123")
+            .age(30)
+            .build();
+
+        // 회원 가입
+        mockMvc.perform(post(USER_REQUEST_URI)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(memberRequest))
+            )
+            .andExpect(status().isOk());
+        assertThat(userRepository.existsByUsername(memberRequest.getUsername())).isTrue();
+
+        // 로그인
+        AuthTokensDTO authTokensDTO = loginHelper.login(memberRequest);
+
+        // 유저 정보 업데이트 요청
+        UserInfoPatchRequest userInfoPatchRequest = UserInfoPatchRequest.builder()
+            .username("kimquel123")
+            .age(memberRequest.getAge() + 10)
+            .build();
+
+        mockMvc.perform(patch(USER_REQUEST_URI)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(userInfoPatchRequest))
+            .header(
+                JwtAuthenticationProvider.AUTHORIZATION,
+                JwtAuthenticationProvider.BEARER + authTokensDTO.getAccessToken()
+            )
+        )
+            .andExpect(status().isOk())
+            .andDo(print());
+
+        assertThat(userRepository.existsByUsername(memberRequest.getUsername())).isFalse();
+
+        Optional<User> foundUserOpt = userRepository
+            .findByUsername(userInfoPatchRequest.getUsername());
+        assertThat(foundUserOpt.isPresent()).isTrue();
+
+        User foundUser = foundUserOpt.get();
+        assertThat(foundUser.getUsername()).isNotEqualTo(memberRequest.getUsername());
+        assertThat(passwordEncoder.matches(memberRequest.getPassword(), foundUser.getPassword()))
+            .isTrue();
+        assertThat(foundUser.getAge()).isNotEqualTo(memberRequest.getAge());
+        assertThat(foundUser.getAge()).isEqualTo(memberRequest.getAge() + 10);
     }
 }
