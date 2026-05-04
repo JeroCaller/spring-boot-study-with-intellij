@@ -49,7 +49,7 @@ public class BasicConfig {
 
     @Bean
     public JwtExceptionHandlerFactory getJwtExceptionHandlerFactory() {
-        JwtExceptionHandlerFactory factory = JwtExceptionHandlerFactory.getInstance();
+        JwtExceptionHandlerFactory factory = new JwtExceptionHandlerFactory();
         factory.setDefaultHandler(new DefaultJwtExceptionHandler());
         factory.register(ExpiredJwtException.class, new ExpiredJwtExceptionHandler());
         factory.register(JwtIllegalArgumentException.class, new JwtIllegalArgumentExceptionHandler());
