@@ -6,6 +6,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class AuthUtil {
     public static String getAuth() {
         Authentication authentication = SecurityContextHolder.getContext()
@@ -28,5 +31,15 @@ public class AuthUtil {
         }
 
         return true;
+    }
+
+    public static List<String> getRoleNames(Authentication authentication) {
+        List<String> roleNames = new ArrayList<>();
+
+        for (GrantedAuthority grantedAuthority : authentication.getAuthorities()) {
+            roleNames.add(grantedAuthority.getAuthority());
+        }
+
+        return roleNames;
     }
 }

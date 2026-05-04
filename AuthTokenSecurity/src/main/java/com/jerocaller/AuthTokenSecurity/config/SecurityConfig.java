@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -18,6 +19,7 @@ import org.springframework.security.web.authentication.logout.SecurityContextLog
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity // @PreAuthorize 어노테이션을 사용하기 위함.
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final String[] permitAllUris = {
@@ -26,7 +28,8 @@ public class SecurityConfig {
         "/v3/api-docs/**",
         "/swagger-ui.html",
         "/swagger-ui/index.html",
-        "/api/auth/**"
+        "/api/auth/**",
+        "/api/users/auth/status/**"
     };
     private final JwtExceptionFilter jwtExceptionFilter;
     private final DefaultJwtAuthenticationFilter defaultJwtAuthenticationFilter;

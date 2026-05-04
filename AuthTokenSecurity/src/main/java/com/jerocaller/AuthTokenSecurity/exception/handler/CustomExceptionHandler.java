@@ -7,6 +7,7 @@ import com.jerocaller.libs.spoonsuits.web.validation.ValidationUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -55,5 +56,12 @@ public class CustomExceptionHandler {
     @ExceptionHandler(value = BaseCustomException.class)
     public ResponseEntity<RestResponse.DetailedRestResponse<Object>> handleCustomExceptions(BaseCustomException e) {
         return RestResponse.error(e.getResponseCode());
+    }
+
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    public ResponseEntity<RestResponse.DetailedRestResponse<Object>> handleAuthorizationDeniedException(
+        AuthorizationDeniedException e)
+    {
+        return RestResponse.error(ResponseCode.NOT_AUTHORIZED);
     }
 }

@@ -29,6 +29,11 @@ public enum ResponseCode {
         "NOT_AUTHENTICATED",
         "미인증자는 접근할 수 없습니다. 인증을 먼저 하세요"
     ),
+    NOT_AUTHORIZED(
+        HttpStatus.UNAUTHORIZED,
+        "NOT_AUTHORIZED",
+        "접근 권한이 없어 접근이 거부되었습니다."
+    ),
     PASSWORD_NOT_MATCHED(
         HttpStatus.CONFLICT,
         "PASSWORD_NOT_MATCHED",
