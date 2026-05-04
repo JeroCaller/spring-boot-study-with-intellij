@@ -1,12 +1,14 @@
 package com.jerocaller.AuthTokenSecurity.jwt;
 
 import io.jsonwebtoken.JwtException;
+import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
 
+@Component
 public class JwtExceptionHandlerFactory {
-    private static final Map<Class<? extends JwtException>, JwtExceptionHandler> handlerMapper =
+    private final Map<Class<? extends JwtException>, JwtExceptionHandler> handlerMapper =
         new HashMap<>();
 
     public void setDefaultHandler(JwtExceptionHandler handler) {
