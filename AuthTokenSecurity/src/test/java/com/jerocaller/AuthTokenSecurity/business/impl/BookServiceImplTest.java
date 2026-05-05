@@ -5,6 +5,7 @@ import com.jerocaller.AuthTokenSecurity.data.dto.request.BookRequest;
 import com.jerocaller.AuthTokenSecurity.data.dto.response.BookResponse;
 import com.jerocaller.AuthTokenSecurity.data.entity.Book;
 import com.jerocaller.AuthTokenSecurity.data.repository.BookRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
 @ActiveProfiles("test")
+@Slf4j
 class BookServiceImplTest {
 
     @Autowired
@@ -29,6 +31,12 @@ class BookServiceImplTest {
     @AfterEach
     void clear() {
         bookRepository.deleteAll();
+    }
+
+    @Test
+    @DisplayName("초기화 테스트")
+    void init() {
+        log.info("Bookservice: {}", bookService.getClass().getSimpleName());
     }
 
     @Test
@@ -72,6 +80,7 @@ class BookServiceImplTest {
         // 기존에 등록한 책 정보 업데이트.
         BookRequest updateRequest = BookRequest.builder()
             .name("SQLD 자격증 도전하기!")
+            .price(1000)
             .build();
         bookService.updateBook(registerResult.getId(), updateRequest);
         assertThat(bookRepository.existsByName(bookRequest.getName())).isFalse();
