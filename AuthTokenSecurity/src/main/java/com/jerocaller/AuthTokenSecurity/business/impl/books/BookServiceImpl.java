@@ -1,5 +1,6 @@
-package com.jerocaller.AuthTokenSecurity.business.impl;
+package com.jerocaller.AuthTokenSecurity.business.impl.books;
 
+import com.jerocaller.AuthTokenSecurity.aop.annotations.LogMethodBoundary;
 import com.jerocaller.AuthTokenSecurity.business.BookService;
 import com.jerocaller.AuthTokenSecurity.data.dto.request.BookRequest;
 import com.jerocaller.AuthTokenSecurity.data.dto.response.BookResponse;
@@ -7,12 +8,15 @@ import com.jerocaller.AuthTokenSecurity.data.entity.Book;
 import com.jerocaller.AuthTokenSecurity.data.repository.BookRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
+@Primary
 @Service
 @RequiredArgsConstructor
+@LogMethodBoundary
 public class BookServiceImpl implements BookService {
     private final BookRepository bookRepository;
 
